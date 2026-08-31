@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+
 const secret = () => {
   const s = process.env.JWT_SECRET;
   if (!s) throw new Error("JWT_SECRET is not set");
@@ -26,4 +27,21 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   } catch {
     res.status(401).json({ error: "Invalid or expired token" });
   }
+}
+
+export function requireServiceAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const serviceToken = process.env.SERVICE_TOKEN;
+  if (!serviceToken) {
+    res.status(503).json({ error: "SERVICE_TOKEN not configured" });
+    return;
+  }
+  if (req.headers.authorization === `Service ${serviceToken}`) {
+    next();
+    return;
+  }
+  res.status(403).json({ error: "Forbidden" });
 }

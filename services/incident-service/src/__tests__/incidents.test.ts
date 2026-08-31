@@ -179,3 +179,75 @@ describe("PATCH /incidents/:id/resolve", () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe("GET /incidents/by-code/:joinCode", () => {
+  it("returns id and title for a valid join code", async () => {
+    const created = await request(app)
+      .post("/incidents")
+      .set("Authorization", token())
+      .send({ title: "By-code test" });
+    const { joinCode, id, title } = created.body;
+
+    const res = await request(app).get(`/incidents/by-code/${joinCode}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(id);
+    expect(res.body.title).toBe(title);
+    expect(res.body.ownerId).toBeUndefined();
+  });
+
+  it("returns 404 for an unknown join code", async () => {
+    const res = await request(app).get("/incidents/by-code/XXXXXX");
+    expect(res.status).toBe(404);
+  });
+
+  it("does not require an Authorization header", async () => {
+    const created = await request(app)
+      .post("/incidents")
+      .set("Authorization", token())
+      .send({ title: "Public access test" });
+    const { joinCode } = created.body;
+
+    const res = await request(app).get(`/incidents/by-code/${joinCode}`);
+    expect(res.status).toBe(200);
+  });
+});
+
+const SERVICE_TOKEN = process.env.SERVICE_TOKEN ?? "internal-test-token";
+
+describe("GET /internal/incidents/:id/blocks", () => {
+  it("returns blocks with a valid service token", async () => {
+    const inc = await request(app)
+      .post("/incidents")
+      .set("Authorization", token())
+      .send({ title: "Internal test" });
+    const incidentId = inc.body.id;
+
+    await request(app)
+      .post(`/incidents/${incidentId}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "log", body: "internal test block" });
+
+    const res = await request(app)
+      .get(`/internal/incidents/${incidentId}/blocks`)
+      .set("Authorization", `Service ${SERVICE_TOKEN}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].body).toBe("internal test block");
+  });
+
+  it("returns 403 without a service token", async () => {
+    const res = await request(app).get(
+      "/internal/incidents/00000000-0000-0000-0000-000000000001/blocks"
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 403 with the wrong service token", async () => {
+    const res = await request(app)
+      .get("/internal/incidents/00000000-0000-0000-0000-000000000001/blocks")
+      .set("Authorization", "Service wrong-token");
+    expect(res.status).toBe(403);
+  });
+});
