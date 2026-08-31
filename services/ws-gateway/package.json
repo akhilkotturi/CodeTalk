@@ -1,0 +1,27 @@
+{
+  "name": "@war-room/ws-gateway",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "jest --runInBand"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.14.2",
+    "@types/ws": "^8.5.14",
+    "jest": "^30.5.0",
+    "ts-jest": "^29.4.12",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.5.2"
+  }
+}
