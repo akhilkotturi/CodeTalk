@@ -1,5 +1,8 @@
 import { db } from "../db/index";
 import { sql } from "drizzle-orm";
+import jwt from "jsonwebtoken";
+
+const TEST_SECRET = process.env.JWT_SECRET ?? "test-secret-for-local-dev";
 
 /**
  * Truncate all tables in dependency order (children first) and reset
@@ -15,4 +18,12 @@ export async function truncateAll(): Promise<void> {
       incidents
     RESTART IDENTITY CASCADE
   `);
+}
+
+/**
+ * Create a signed JWT for the given userId. Uses the same secret as the app
+ * so tokens are valid against the running middleware.
+ */
+export function createToken(userId: string): string {
+  return jwt.sign({ sub: userId }, TEST_SECRET, { expiresIn: "1h" });
 }

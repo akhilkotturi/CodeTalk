@@ -3,8 +3,6 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db/index";
 import { incidents, incidentMembers } from "../db/schema";
 
-// TODO(phase-2): replace with JWT subject once auth is in place.
-const PLACEHOLDER_OWNER_ID = "00000000-0000-0000-0000-000000000001";
 
 // Postgres unique-violation error code.
 const PG_UNIQUE_VIOLATION = "23505";
@@ -37,13 +35,13 @@ incidentRouter.post("/", async (req: Request, res: Response) => {
         .values({
           title: title.trim(),
           description: description?.trim() ?? null,
-          ownerId: PLACEHOLDER_OWNER_ID,
+          ownerId: req.user.sub,
           joinCode,
         })
         .returning();
       await db.insert(incidentMembers).values({
         incidentId: incident.id,
-        userId: PLACEHOLDER_OWNER_ID,
+        userId: req.user.sub,
         role: "owner",
       });
       res.status(201).json(incident);

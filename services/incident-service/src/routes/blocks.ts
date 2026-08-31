@@ -16,8 +16,6 @@ async function requireIncident(incidentId: string, res: Response): Promise<boole
   return true;
 }
 
-// TODO(phase-2): replace with JWT subject.
-const PLACEHOLDER_AUTHOR_ID = "00000000-0000-0000-0000-000000000001";
 
 const VALID_BLOCK_TYPES = [
   "log",
@@ -59,7 +57,7 @@ blocksRouter.post("/", async (req: Request, res: Response) => {
       .insert(incidentBlocks)
       .values({
         incidentId,
-        authorId: PLACEHOLDER_AUTHOR_ID,
+        authorId: req.user.sub,
         blockType,
         body: body.trim(),
         subject: blockType === "custom" ? subject!.trim() : null,
