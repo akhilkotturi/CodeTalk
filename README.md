@@ -1,4 +1,4 @@
-# War Room
+# CodeTalk
 
 Real-time incident war room for hackathon and project teams. When something
 breaks mid-build, spin up a shared room: a live canvas for the incident,
@@ -29,7 +29,7 @@ war-room/
   gateway/
     kong/                   # (planned) Kong declarative config
   infra/
-    docker-compose.yml       # (planned) Postgres, Redis, MQ, Kong
+    docker-compose.yml       # Postgres (live); Redis, MQ, Kong stubs for later phases
   mcp/
     session-summarizer/      # (planned) MCP server wrapping incident-service
   shared/
@@ -61,7 +61,21 @@ war-room/
 
 ## Local development
 
-<!-- TODO: fill in once infra/docker-compose.yml exists -->
+```bash
+# 1. Start Postgres
+docker compose -f infra/docker-compose.yml up -d
+
+# 2. Copy env (first time only)
+cp services/incident-service/.env.example services/incident-service/.env
+
+# 3. Run migrations
+npm run db:migrate -w services/incident-service
+
+# 4. Start incident-service
+npm run dev:incident-service
+```
+
+See `infra/README.md` for more details (psql access, volume management, upcoming services).
 
 ## What I learned
 

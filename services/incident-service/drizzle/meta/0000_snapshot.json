@@ -1,0 +1,215 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.incidents": {
+      "name": "incidents",
+      "schema": "public",
+      "columns": {
+        "id":          { "name": "id",          "type": "uuid",                      "notNull": true,  "primaryKey": true,  "default": "gen_random_uuid()" },
+        "title":       { "name": "title",       "type": "text",                      "notNull": true,  "primaryKey": false, "default": null },
+        "description": { "name": "description", "type": "text",                      "notNull": false, "primaryKey": false, "default": null },
+        "owner_id":    { "name": "owner_id",    "type": "uuid",                      "notNull": true,  "primaryKey": false, "default": null },
+        "status":      { "name": "status",      "type": "text",                      "notNull": true,  "primaryKey": false, "default": "'active'" },
+        "join_code":   { "name": "join_code",   "type": "text",                      "notNull": true,  "primaryKey": false, "default": null },
+        "created_at":  { "name": "created_at",  "type": "timestamp with time zone",  "notNull": true,  "primaryKey": false, "default": "now()" },
+        "resolved_at": { "name": "resolved_at", "type": "timestamp with time zone",  "notNull": false, "primaryKey": false, "default": null }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "incidents_join_code_unique": {
+          "name": "incidents_join_code_unique",
+          "columns": ["join_code"],
+          "nullsNotDistinct": false
+        }
+      },
+      "checkConstraints": {
+        "incidents_status_check": {
+          "name": "incidents_status_check",
+          "value": "\"incidents\".\"status\" in ('active', 'resolved')"
+        }
+      }
+    },
+    "public.incident_members": {
+      "name": "incident_members",
+      "schema": "public",
+      "columns": {
+        "incident_id": { "name": "incident_id", "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "user_id":     { "name": "user_id",     "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "role":        { "name": "role",        "type": "text", "notNull": true,  "primaryKey": false, "default": null },
+        "joined_at":   { "name": "joined_at",   "type": "timestamp with time zone", "notNull": true, "primaryKey": false, "default": "now()" }
+      },
+      "indexes": {
+        "incident_members_incident_id_idx": {
+          "name": "incident_members_incident_id_idx",
+          "columns": [{ "expression": "incident_id", "isExpression": false, "asc": true, "nulls": "last" }],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "incident_members_incident_id_fk": {
+          "name": "incident_members_incident_id_fk",
+          "tableFrom": "incident_members",
+          "columnsFrom": ["incident_id"],
+          "tableTo": "incidents",
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "incident_members_pk": {
+          "name": "incident_members_pk",
+          "columns": ["incident_id", "user_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "incident_members_role_check": {
+          "name": "incident_members_role_check",
+          "value": "\"incident_members\".\"role\" in ('owner', 'responder')"
+        }
+      }
+    },
+    "public.membership_events": {
+      "name": "membership_events",
+      "schema": "public",
+      "columns": {
+        "id":          { "name": "id",          "type": "uuid", "notNull": true,  "primaryKey": true,  "default": "gen_random_uuid()" },
+        "incident_id": { "name": "incident_id", "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "user_id":     { "name": "user_id",     "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "event_type":  { "name": "event_type",  "type": "text", "notNull": true,  "primaryKey": false, "default": null },
+        "occurred_at": { "name": "occurred_at", "type": "timestamp with time zone", "notNull": true, "primaryKey": false, "default": "now()" }
+      },
+      "indexes": {
+        "membership_events_incident_id_idx": {
+          "name": "membership_events_incident_id_idx",
+          "columns": [{ "expression": "incident_id", "isExpression": false, "asc": true, "nulls": "last" }],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "membership_events_occurred_at_idx": {
+          "name": "membership_events_occurred_at_idx",
+          "columns": [{ "expression": "occurred_at", "isExpression": false, "asc": true, "nulls": "last" }],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "membership_events_incident_id_fk": {
+          "name": "membership_events_incident_id_fk",
+          "tableFrom": "membership_events",
+          "columnsFrom": ["incident_id"],
+          "tableTo": "incidents",
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "membership_events_type_check": {
+          "name": "membership_events_type_check",
+          "value": "\"membership_events\".\"event_type\" in ('joined', 'left')"
+        }
+      }
+    },
+    "public.incident_blocks": {
+      "name": "incident_blocks",
+      "schema": "public",
+      "columns": {
+        "id":          { "name": "id",          "type": "uuid", "notNull": true,  "primaryKey": true,  "default": "gen_random_uuid()" },
+        "incident_id": { "name": "incident_id", "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "author_id":   { "name": "author_id",   "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "block_type":  { "name": "block_type",  "type": "text", "notNull": true,  "primaryKey": false, "default": null },
+        "subject":     { "name": "subject",     "type": "text", "notNull": false, "primaryKey": false, "default": null },
+        "body":        { "name": "body",        "type": "text", "notNull": true,  "primaryKey": false, "default": null },
+        "created_at":  { "name": "created_at",  "type": "timestamp with time zone", "notNull": true, "primaryKey": false, "default": "now()" }
+      },
+      "indexes": {
+        "incident_blocks_incident_id_idx": {
+          "name": "incident_blocks_incident_id_idx",
+          "columns": [{ "expression": "incident_id", "isExpression": false, "asc": true, "nulls": "last" }],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "incident_blocks_incident_id_fk": {
+          "name": "incident_blocks_incident_id_fk",
+          "tableFrom": "incident_blocks",
+          "columnsFrom": ["incident_id"],
+          "tableTo": "incidents",
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "incident_blocks_type_check": {
+          "name": "incident_blocks_type_check",
+          "value": "\"incident_blocks\".\"block_type\" in ('log', 'hypothesis', 'fix_attempt', 'root_cause', 'custom')"
+        }
+      }
+    },
+    "public.incident_links": {
+      "name": "incident_links",
+      "schema": "public",
+      "columns": {
+        "id":          { "name": "id",          "type": "uuid", "notNull": true,  "primaryKey": true,  "default": "gen_random_uuid()" },
+        "incident_id": { "name": "incident_id", "type": "uuid", "notNull": true,  "primaryKey": false, "default": null },
+        "url":         { "name": "url",         "type": "text", "notNull": true,  "primaryKey": false, "default": null },
+        "label":       { "name": "label",       "type": "text", "notNull": false, "primaryKey": false, "default": null },
+        "linked_at":   { "name": "linked_at",   "type": "timestamp with time zone", "notNull": true, "primaryKey": false, "default": "now()" }
+      },
+      "indexes": {
+        "incident_links_incident_id_idx": {
+          "name": "incident_links_incident_id_idx",
+          "columns": [{ "expression": "incident_id", "isExpression": false, "asc": true, "nulls": "last" }],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "incident_links_incident_id_fk": {
+          "name": "incident_links_incident_id_fk",
+          "tableFrom": "incident_links",
+          "columnsFrom": ["incident_id"],
+          "tableTo": "incidents",
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}

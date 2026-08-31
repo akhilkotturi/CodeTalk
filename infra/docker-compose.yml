@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: incident_service
+      POSTGRES_USER: war_room
+      POSTGRES_PASSWORD: war_room
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U war_room -d incident_service"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Phase 4: Kong API Gateway ─────────────────────────────────────────────
+  # kong:
+  #   image: kong:3.7-alpine
+  #   environment:
+  #     KONG_DATABASE: "off"
+  #     KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+  #     KONG_PROXY_ACCESS_LOG: /dev/stdout
+  #     KONG_ADMIN_ACCESS_LOG: /dev/stdout
+  #     KONG_PROXY_ERROR_LOG: /dev/stderr
+  #     KONG_ADMIN_ERROR_LOG: /dev/stderr
+  #     KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+  #   ports:
+  #     - "8000:8000"   # proxy
+  #     - "8001:8001"   # admin API
+  #   volumes:
+  #     - ./gateway/kong:/kong/declarative
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+  # ── Phase 7: RabbitMQ (membership events / notification-service) ──────────
+  # rabbitmq:
+  #   image: rabbitmq:3.13-management-alpine
+  #   ports:
+  #     - "5672:5672"    # AMQP
+  #     - "15672:15672"  # management UI
+  #   volumes:
+  #     - rabbitmqdata:/var/lib/rabbitmq
+
+  # ── Phase 8: Redis (presence state, active-incident caching) ─────────────
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redisdata:/data
+
+volumes:
+  pgdata:
+  # redisdata:    # Phase 8
+  # rabbitmqdata: # Phase 7
