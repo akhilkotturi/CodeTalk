@@ -1,0 +1,39 @@
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.snippets": {
+      "name": "snippets",
+      "schema": "public",
+      "columns": {
+        "id":          { "name": "id",          "type": "uuid",                     "notNull": true,  "primaryKey": true,  "default": "gen_random_uuid()" },
+        "incident_id": { "name": "incident_id", "type": "uuid",                     "notNull": true,  "primaryKey": false, "default": null },
+        "author_id":   { "name": "author_id",   "type": "uuid",                     "notNull": true,  "primaryKey": false, "default": null },
+        "language":    { "name": "language",    "type": "text",                     "notNull": true,  "primaryKey": false, "default": null },
+        "filename":    { "name": "filename",    "type": "text",                     "notNull": false, "primaryKey": false, "default": null },
+        "content":     { "name": "content",     "type": "text",                     "notNull": true,  "primaryKey": false, "default": null },
+        "created_at":  { "name": "created_at",  "type": "timestamp with time zone", "notNull": true,  "primaryKey": false, "default": "now()" }
+      },
+      "indexes": {
+        "snippets_incident_id_idx": {
+          "name": "snippets_incident_id_idx",
+          "columns": [{ "expression": "incident_id", "isExpression": false, "asc": true, "nulls": "last" }],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": { "schemas": {}, "tables": {}, "columns": {} }
+}

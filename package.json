@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev:incident-service": "npm run dev -w services/incident-service"
+    "dev:incident-service": "npm run dev -w services/incident-service",
+    "dev:snippet-service": "npm run dev -w services/snippet-service"
   },
   "engines": {
     "node": ">=20"

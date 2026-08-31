@@ -108,3 +108,68 @@ blocksRouter.get("/:blockId", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+blocksRouter.patch("/:blockId", async (req: Request, res: Response) => {
+  const { id: incidentId, blockId } = req.params;
+  const { body, subject } = req.body as { body?: string; subject?: string };
+
+  if (body === undefined && subject === undefined) {
+    res.status(400).json({ error: "At least one of body or subject must be provided" });
+    return;
+  }
+
+  try {
+    const [existing] = await db
+      .select()
+      .from(incidentBlocks)
+      .where(and(eq(incidentBlocks.incidentId, incidentId), eq(incidentBlocks.id, blockId)))
+      .limit(1);
+
+    if (!existing) {
+      res.status(404).json({ error: "Block not found" });
+      return;
+    }
+    if (existing.blockType !== "custom" && subject !== undefined) {
+      res.status(400).json({ error: "subject can only be set on custom blocks" });
+      return;
+    }
+    if (existing.blockType === "custom" && subject !== undefined && subject.trim() === "") {
+      res.status(400).json({ error: "subject cannot be blank on custom blocks" });
+      return;
+    }
+
+    const updates: Partial<typeof incidentBlocks.$inferInsert> = {};
+    if (body !== undefined) updates.body = body.trim();
+    if (subject !== undefined) updates.subject = subject.trim();
+
+    const [updated] = await db
+      .update(incidentBlocks)
+      .set(updates)
+      .where(and(eq(incidentBlocks.incidentId, incidentId), eq(incidentBlocks.id, blockId)))
+      .returning();
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error("PATCH /incidents/:id/blocks/:blockId error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+blocksRouter.delete("/:blockId", async (req: Request, res: Response) => {
+  const { id: incidentId, blockId } = req.params;
+  try {
+    const deleted = await db
+      .delete(incidentBlocks)
+      .where(and(eq(incidentBlocks.incidentId, incidentId), eq(incidentBlocks.id, blockId)))
+      .returning();
+
+    if (deleted.length === 0) {
+      res.status(404).json({ error: "Block not found" });
+      return;
+    }
+    res.status(200).json({ deleted: true });
+  } catch (err) {
+    console.error("DELETE /incidents/:id/blocks/:blockId error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});

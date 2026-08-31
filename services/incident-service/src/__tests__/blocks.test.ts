@@ -162,3 +162,129 @@ describe("GET /incidents/:id/blocks/:blockId", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("PATCH /incidents/:id/blocks/:blockId", () => {
+  it("updates body", async () => {
+    const { id } = await createIncident();
+    const created = await request(app)
+      .post(`/incidents/${id}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "log", body: "old body" });
+    const blockId = created.body.id;
+
+    const res = await request(app)
+      .patch(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token())
+      .send({ body: "updated body" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.body).toBe("updated body");
+    expect(res.body.blockType).toBe("log"); // unchanged
+  });
+
+  it("updates subject on a custom block", async () => {
+    const { id } = await createIncident();
+    const created = await request(app)
+      .post(`/incidents/${id}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "custom", body: "content", subject: "Old heading" });
+    const blockId = created.body.id;
+
+    const res = await request(app)
+      .patch(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token())
+      .send({ subject: "New heading" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.subject).toBe("New heading");
+  });
+
+  it("returns 400 when setting subject on a non-custom block", async () => {
+    const { id } = await createIncident();
+    const created = await request(app)
+      .post(`/incidents/${id}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "log", body: "content" });
+    const blockId = created.body.id;
+
+    const res = await request(app)
+      .patch(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token())
+      .send({ subject: "should fail" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/custom/i);
+  });
+
+  it("returns 400 when setting blank subject on custom block", async () => {
+    const { id } = await createIncident();
+    const created = await request(app)
+      .post(`/incidents/${id}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "custom", body: "content", subject: "heading" });
+    const blockId = created.body.id;
+
+    const res = await request(app)
+      .patch(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token())
+      .send({ subject: "   " });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 when no fields are provided", async () => {
+    const { id } = await createIncident();
+    const created = await request(app)
+      .post(`/incidents/${id}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "log", body: "content" });
+    const blockId = created.body.id;
+
+    const res = await request(app)
+      .patch(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token())
+      .send({});
+
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 for unknown blockId", async () => {
+    const { id } = await createIncident();
+    const res = await request(app)
+      .patch(`/incidents/${id}/blocks/${UNKNOWN_ID}`)
+      .set("Authorization", token())
+      .send({ body: "x" });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe("DELETE /incidents/:id/blocks/:blockId", () => {
+  it("deletes a block and returns 200", async () => {
+    const { id } = await createIncident();
+    const created = await request(app)
+      .post(`/incidents/${id}/blocks`)
+      .set("Authorization", token())
+      .send({ blockType: "log", body: "delete me" });
+    const blockId = created.body.id;
+
+    const res = await request(app)
+      .delete(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token());
+
+    expect(res.status).toBe(200);
+    expect(res.body.deleted).toBe(true);
+
+    const check = await request(app)
+      .get(`/incidents/${id}/blocks/${blockId}`)
+      .set("Authorization", token());
+    expect(check.status).toBe(404);
+  });
+
+  it("returns 404 for unknown blockId", async () => {
+    const { id } = await createIncident();
+    const res = await request(app)
+      .delete(`/incidents/${id}/blocks/${UNKNOWN_ID}`)
+      .set("Authorization", token());
+    expect(res.status).toBe(404);
+  });
+});

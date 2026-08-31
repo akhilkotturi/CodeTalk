@@ -15,6 +15,10 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Phase 3: snippet-service (run locally with npm run dev:snippet-service) ─
+  # snippet-service runs as a local Node process in development.
+  # A Dockerfile + compose entry will be added when containerisation is needed.
+
   # ── Phase 4: Kong API Gateway ─────────────────────────────────────────────
   # kong:
   #   image: kong:3.7-alpine
