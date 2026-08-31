@@ -15,29 +15,68 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Phase 3: snippet-service (run locally with npm run dev:snippet-service) ─
-  # snippet-service runs as a local Node process in development.
-  # A Dockerfile + compose entry will be added when containerisation is needed.
+  incident-service:
+    build:
+      context: ..
+      dockerfile: services/incident-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-internal-dev-token}
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # ── Phase 4: Kong API Gateway ─────────────────────────────────────────────
-  # kong:
-  #   image: kong:3.7-alpine
-  #   environment:
-  #     KONG_DATABASE: "off"
-  #     KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
-  #     KONG_PROXY_ACCESS_LOG: /dev/stdout
-  #     KONG_ADMIN_ACCESS_LOG: /dev/stdout
-  #     KONG_PROXY_ERROR_LOG: /dev/stderr
-  #     KONG_ADMIN_ERROR_LOG: /dev/stderr
-  #     KONG_ADMIN_LISTEN: "0.0.0.0:8001"
-  #   ports:
-  #     - "8000:8000"   # proxy
-  #     - "8001:8001"   # admin API
-  #   volumes:
-  #     - ./gateway/kong:/kong/declarative
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
+  snippet-service:
+    build:
+      context: ..
+      dockerfile: services/snippet-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      PORT: "4001"
+    ports:
+      - "4001:4001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ws-gateway:
+    build:
+      context: ..
+      dockerfile: services/ws-gateway/Dockerfile
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-internal-dev-token}
+      INCIDENT_SERVICE_URL: http://incident-service:4000
+      PORT: "4002"
+    ports:
+      - "4002:4002"
+    depends_on:
+      - incident-service
+
+  kong:
+    image: kong:3.7-alpine
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - ../gateway/kong:/kong/declarative
+    depends_on:
+      - incident-service
+      - snippet-service
+      - ws-gateway
 
   # ── Phase 7: RabbitMQ (membership events / notification-service) ──────────
   # rabbitmq:

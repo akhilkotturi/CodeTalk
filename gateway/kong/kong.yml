@@ -1,0 +1,36 @@
+# gateway/kong/kong.yml — DB-less declarative Kong config.
+# Kong proxies all external traffic; services keep their own JWT middleware.
+# /internal/* is intentionally absent — unreachable from outside Docker network.
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: incident-service
+    url: http://incident-service:4000
+    routes:
+      - name: incident-routes
+        paths:
+          - /incidents
+          - /auth
+        strip_path: false
+
+  - name: snippet-service
+    url: http://snippet-service:4001
+    routes:
+      - name: snippet-routes
+        paths:
+          - /snippets
+        strip_path: false
+
+  - name: ws-gateway
+    url: http://ws-gateway:4002
+    routes:
+      - name: ws-routes
+        paths:
+          - /ws
+        strip_path: false
+        protocols:
+          - http
+          - https
+          - ws
+          - wss
