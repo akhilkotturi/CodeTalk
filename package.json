@@ -10,7 +10,9 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev:incident-service": "npm run dev -w services/incident-service",
-    "dev:snippet-service": "npm run dev -w services/snippet-service"
+    "dev:snippet-service": "npm run dev -w services/snippet-service",
+    "dev:ws-gateway": "npm run dev -w services/ws-gateway",
+    "test:e2e": "jest --config e2e/jest.config.ts"
   },
   "engines": {
     "node": ">=20"
