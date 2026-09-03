@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "description": "Real-time incident war room for hackathon/project teams. Learning project: microservices, Kong, JWT, WS load balancing, MCP.",
   "workspaces": [
+    "apps/*",
     "services/*",
     "shared/*"
   ],
@@ -13,6 +14,8 @@
     "dev:notification-service": "npm run dev -w services/notification-service",
     "dev:snippet-service": "npm run dev -w services/snippet-service",
     "dev:ws-gateway": "npm run dev -w services/ws-gateway",
+    "dev:web": "npm run dev -w apps/web",
+    "test:web": "npm run test -w apps/web",
     "test:e2e": "jest --config e2e/jest.config.ts"
   },
   "engines": {
