@@ -1,7 +1,7 @@
 # Phases 4–6 Design: Kong Gateway, ws-gateway, Present Mode
 
 **Date:** 2026-08-31  
-**Status:** Approved
+**Status:** Implemented and verified on 2026-09-02
 
 ---
 
@@ -59,7 +59,8 @@ Three upstream services:
 | `ws-gateway` | `http://ws-gateway:4002` | `/ws` |
 
 All routes use `strip_path: false` so the path is forwarded unchanged.  
-The `/ws` route includes `protocols: [http, ws]` to allow WebSocket upgrades through Kong.
+The `/ws` route uses `protocols: [http, https]`. WebSocket connections begin
+as HTTP upgrade requests, so Kong proxies them through these standard protocols.
 
 ### 2.3 New Incident-Service Endpoint
 
@@ -121,9 +122,10 @@ Parsed from the WebSocket upgrade request query string:
 | `?token=<JWT>` | `editor` | Verify JWT with JWT_SECRET |
 | `?joinCode=<code>` | `viewer` | Call `GET /incidents/by-code/:code` on incident-service |
 
-If auth fails, the server closes the WebSocket with code `4401` (application-level, not a valid HTTP status — signals auth failure to client).
+If auth fails, the server rejects the upgrade with HTTP 401 before a WebSocket
+connection is established.
 
-The `incidentId` for editors comes from the `?incidentId=UUID` query param (JWT only carries `sub`). For viewers it comes from the by-code lookup result. A connection missing both `token`/`joinCode` and `incidentId` is rejected with close code 4401.
+The `incidentId` for editors comes from the `?incidentId=UUID` query param (JWT only carries `sub`). For viewers it comes from the by-code lookup result. A connection missing the required authentication or incident information is rejected during the upgrade with HTTP 401.
 
 ### 3.3 Message Protocol
 
@@ -158,7 +160,7 @@ All messages are JSON with a `type` field.
 
 When any client (editor or viewer) joins, ws-gateway fetches current state from incident-service:
 
-- `GET http://incident-service:4000/incidents/:id` — incident metadata
+- `GET http://incident-service:4000/internal/incidents/:id` — incident metadata
 - `GET http://incident-service:4000/internal/incidents/:id/blocks` — all blocks
 
 Both calls include header `Authorization: Service <SERVICE_TOKEN>`.
@@ -179,8 +181,8 @@ Tests cover:
 - Editor sends `cursor_move` → broadcast to editors only.
 - Viewer connects with valid join code → receives `room_snapshot`.
 - Viewer sends `block_event` → silently dropped (not broadcast).
-- Invalid token → connection closed with code 4401.
-- Invalid join code → connection closed with code 4401.
+- Invalid token → upgrade rejected with HTTP 401.
+- Invalid join code → upgrade rejected with HTTP 401.
 - Client disconnects → `user_left` broadcast.
 
 ---
@@ -201,7 +203,7 @@ ws://localhost:8000/ws?joinCode=XXXXXX
 
 1. Client supplies `joinCode` — no JWT.
 2. ws-gateway calls `GET /incidents/by-code/:code` on incident-service.
-3. If the code is unknown: close with 4401.
+3. If the code is unknown: reject the upgrade with HTTP 401.
 4. ws-gateway fetches snapshot via service token and sends `room_snapshot` to the viewer.
 5. Viewer is added to the room with `role: "viewer"`.
 6. `user_joined` is broadcast with `role: "viewer"` so editors can show presence.
@@ -228,7 +230,7 @@ ws://localhost:8000/ws?joinCode=XXXXXX
 Covered in the ws-gateway test suite (no separate service). Additional tests:
 - Viewer receives `block_event` that an editor broadcasts.
 - Viewer's `block_event` is not re-broadcast to anyone.
-- Join code that doesn't exist → 4401 close.
+- Join code that doesn't exist → HTTP 401 upgrade rejection.
 - Two viewers can connect to the same room simultaneously.
 
 ---
@@ -242,7 +244,8 @@ Covered in the ws-gateway test suite (no separate service). Additional tests:
 | `services/ws-gateway/` | New service (full scaffold) |
 | `gateway/kong/kong.yml` | New — declarative Kong config |
 | `infra/docker-compose.yml` | Uncomment Kong; add incident-service, snippet-service, ws-gateway |
-| `services/incident-service/src/routes/incidents.ts` | Add `GET /incidents/by-code/:joinCode` |
+| `services/incident-service/src/routes/public.ts` | Add `GET /incidents/by-code/:joinCode` |
+| `services/incident-service/src/routes/internal.ts` | Add service-authenticated incident metadata and block snapshot endpoints |
 | `services/incident-service/src/middleware/auth.ts` | Add service-token bypass for `Authorization: Service <token>` |
 | `services/incident-service/src/app.ts` | Mount `/internal` routes (not through Kong) |
 | `e2e/gateway.test.ts` | New — Kong routing smoke tests |

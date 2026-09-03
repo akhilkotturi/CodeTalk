@@ -2,7 +2,11 @@
 
 Local development infrastructure via Docker Compose.
 
-## Phase 1 — Postgres only
+## Current stack — Phases 1–6
+
+The Compose stack runs Postgres, incident-service, snippet-service,
+ws-gateway, and Kong. Kong exposes HTTP and WebSocket traffic on port 8000;
+its admin API is available on port 8001.
 
 Start:
 ```bash
@@ -41,14 +45,25 @@ cp services/incident-service/.env.example services/incident-service/.env
 Then, from the repo root after Postgres is healthy:
 ```bash
 npm run db:migrate -w services/incident-service
+npm run db:migrate -w services/snippet-service
 ```
+
+## Verification
+
+With the full stack running and migrations applied:
+
+```bash
+npm test -w services/incident-service -w services/snippet-service -w services/ws-gateway
+npm run test:e2e
+```
+
+The e2e suite requires Kong to be running and fails if the stack is unavailable.
 
 ## Coming phases
 
 | Phase | Service | Status |
 |-------|---------|--------|
-| 4 | Kong API Gateway | stub in docker-compose.yml |
-| 7 | RabbitMQ | stub in docker-compose.yml |
-| 8 | Redis | stub in docker-compose.yml |
+| 7 | RabbitMQ + notification-service | next; RabbitMQ stub is commented out |
+| 8 | Redis | Redis stub is commented out |
 
-Uncomment the relevant service block in `docker-compose.yml` when that phase begins.
+Implement and enable the relevant service block when that phase begins.

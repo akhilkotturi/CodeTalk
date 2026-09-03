@@ -5,7 +5,8 @@ breaks mid-build, spin up a shared room: a live canvas for the incident,
 structured logs/hypotheses/fix-attempts, presence, and a recorded postmortem
 you can look back on (or show off) afterward.
 
-> Status: early build. This README grows alongside the project — see DEVLOG.md
+> Status: Phases 1–6 complete and locally verified. Phase 7
+> (notification-service + RabbitMQ membership events) is next. See DEVLOG.md
 > for the running story of what got built, what broke, and what I learned.
 
 ## Why this exists
@@ -17,19 +18,17 @@ below maps to an actual feature, not a checkbox.
 
 ## Architecture
 
-<!-- TODO: add architecture diagram once ws-gateway + Kong are in place -->
-
 ```
-war-room/
+CodeTalk/
   services/
     incident-service/     # incidents, membership, structured blocks (Postgres)
-    snippet-service/       # (planned)
-    notification-service/  # (planned)
-    ws-gateway/             # (planned) WebSocket canvas/presence sync
+    snippet-service/       # incident-linked code snippets (Postgres)
+    notification-service/ # planned for Phase 7
+    ws-gateway/            # WebSocket canvas/presence sync
   gateway/
-    kong/                   # (planned) Kong declarative config
+    kong/                  # DB-less declarative API gateway
   infra/
-    docker-compose.yml       # Postgres (live); Redis, MQ, Kong stubs for later phases
+    docker-compose.yml     # Postgres + services + Kong; Redis/MQ stubs for later phases
   mcp/
     session-summarizer/      # (planned) MCP server wrapping incident-service
   shared/
@@ -51,13 +50,14 @@ war-room/
 1. incident-service alone: incidents, membership, Postgres schema, plain REST, no auth
 2. Auth: JWT issuing, protect incident-service routes
 3. snippet/block content tied to an incident
-4. Kong in front of services, JWT verification moved to the gateway
-5. ws-gateway: real-time canvas sync (sticky sessions vs stateless LB)
-6. Load balancing across multiple ws-gateway / incident-service instances, with health checks
-7. notification-service + message queue for join/leave events
+4. Kong in front of services as a router; services retain JWT verification — complete
+5. ws-gateway: real-time canvas sync — complete
+6. Present mode: read-only viewer access via join code — complete
+7. notification-service + message queue for join/leave events — next
 8. Redis for presence state and caching active incidents
-9. Observability (OpenTelemetry, Prometheus/Grafana) across REST + WS paths
-10. MCP server wrapping incident-service for LLM-generated incident summaries
+9. Load balancing across multiple service and WebSocket gateway instances
+10. Observability (OpenTelemetry, Prometheus/Grafana) across REST + WS paths
+11. MCP server wrapping incident-service for LLM-generated incident summaries
 
 ## Local development
 
@@ -68,8 +68,9 @@ docker compose -f infra/docker-compose.yml up -d
 # 2. Copy env (first time only)
 cp services/incident-service/.env.example services/incident-service/.env
 
-# 3. Run migrations
+# 3. Run migrations for both database-backed services
 npm run db:migrate -w services/incident-service
+npm run db:migrate -w services/snippet-service
 
 # 4. Start incident-service
 npm run dev:incident-service

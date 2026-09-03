@@ -29,3 +29,25 @@ incident-service schema: `incidents`, `incident_members`, `membership_events`,
 
 **Next:** scaffold the repo, then write the incident-service migration and a
 first REST slice (create incident, no auth yet).
+
+## 2026-09-02 — Phases 1–6 complete and full-stack verification
+
+**What:** Completed the incident and snippet REST services, JWT authentication,
+Kong routing, the WebSocket gateway, and join-code present mode. Verified the
+workspace build, 111 service tests, five Kong HTTP e2e tests, and live editor
+and viewer WebSocket snapshots through Kong.
+
+**What verification caught:**
+- The planned `kong:3.7-alpine` image tag did not exist; the stack now pins
+  `kong:3.7.1`.
+- Kong route protocols accept `http`/`https`, not `ws`/`wss`; WebSockets use an
+  HTTP upgrade over those protocols.
+- Room snapshots requested incident metadata from a JWT-only route using a
+  service token. Incident-service now exposes a service-authenticated internal
+  metadata endpoint alongside the internal blocks endpoint.
+- The gateway e2e suite selected `test.skip` before its asynchronous health
+  check ran, so it always skipped. It now runs normally and fails when the
+  required stack is unavailable.
+
+**Current phase:** Phase 7 is next: design and implement notification-service
+and RabbitMQ-backed join/leave membership events.

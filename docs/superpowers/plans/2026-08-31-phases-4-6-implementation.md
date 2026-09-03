@@ -1,12 +1,21 @@
 # Phases 4–6 Implementation Plan
 
+**Status:** Complete and verified on 2026-09-02.
+
+The task checkboxes below preserve the original execution sequence. The shipped
+implementation was validated with 111 service tests, a complete workspace build,
+five Kong HTTP e2e tests, and live editor/viewer WebSocket snapshot checks through
+Kong. Final validation also corrected the Kong image tag and route protocols,
+made the e2e suite fail instead of silently skipping when unavailable, and added
+the internal incident-metadata endpoint required by room snapshots.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add Kong API gateway, a WebSocket service for real-time block sync, and present-mode (read-only) viewer connections.
 
 **Architecture:** Kong (DB-less, port 8000) proxies HTTP traffic to incident-service (:4000) and snippet-service (:4001), and WebSocket traffic to ws-gateway (:4002). ws-gateway manages in-memory rooms, broadcasts editor events to all room members, and allows unauthenticated viewers to connect via join code. Services keep their own JWT middleware throughout.
 
-**Tech Stack:** Kong 3.7-alpine, `ws` (WebSocket), TypeScript, ts-jest, supertest, Node 20 native fetch.
+**Tech Stack:** Kong 3.7.1, `ws` (WebSocket), TypeScript, ts-jest, supertest, Node 20 native fetch.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-phases-4-6-design.md`
 
@@ -16,7 +25,7 @@
 - All existing `npm test` suites must continue passing without Docker
 - `strip_path: false` on every Kong route — services receive paths unchanged
 - `/internal/*` routes on incident-service are NOT listed in Kong config — only reachable inside the Docker network
-- WS close code `4401` (application-level) signals auth failure to clients
+- Failed WebSocket authentication rejects the HTTP upgrade with status 401
 - `JWT_SECRET` for ws-gateway tests is `test-secret-for-local-dev`
 - `SERVICE_TOKEN` for tests is `internal-test-token`
 
@@ -27,7 +36,7 @@
 | File | Action | Purpose |
 |---|---|---|
 | `services/incident-service/src/routes/public.ts` | Create | `GET /incidents/by-code/:joinCode` (no auth) |
-| `services/incident-service/src/routes/internal.ts` | Create | `GET /internal/incidents/:id/blocks` (service token) |
+| `services/incident-service/src/routes/internal.ts` | Create | Service-token endpoints for incident metadata and blocks |
 | `services/incident-service/src/middleware/auth.ts` | Modify | Add `requireServiceAuth` export |
 | `services/incident-service/src/app.ts` | Modify | Mount public + internal routers |
 | `services/incident-service/.env` | Modify | Add `SERVICE_TOKEN=internal-test-token` |
@@ -65,19 +74,20 @@
 
 **Interfaces:**
 - Produces: `GET /incidents/by-code/:joinCode` → `{ id: string, title: string }` (no auth)
+- Produces: `GET /internal/incidents/:id` → incident metadata (requires `Authorization: Service <token>`)
 - Produces: `GET /internal/incidents/:id/blocks` → block array (requires `Authorization: Service <token>`)
 - Produces: `requireServiceAuth` middleware (used by app.ts, later by ws-gateway tests)
 
 ---
 
-- [ ] **Step 1: Add `SERVICE_TOKEN` to `.env`**
+- [x] **Step 1: Add `SERVICE_TOKEN` to `.env`**
 
 Append to `services/incident-service/.env`:
 ```
 SERVICE_TOKEN=internal-test-token
 ```
 
-- [ ] **Step 2: Write failing tests for the by-code endpoint**
+- [x] **Step 2: Write failing tests for the by-code endpoint**
 
 Add this describe block to `services/incident-service/src/__tests__/incidents.test.ts` (after existing imports, before closing):
 
@@ -116,7 +126,7 @@ describe("GET /incidents/by-code/:joinCode", () => {
 });
 ```
 
-- [ ] **Step 3: Run tests and verify they fail**
+- [x] **Step 3: Run tests and verify they fail**
 
 ```bash
 npm test -w services/incident-service -- --testPathPattern=incidents 2>&1 | tail -20
@@ -124,7 +134,7 @@ npm test -w services/incident-service -- --testPathPattern=incidents 2>&1 | tail
 
 Expected: 3 failing tests (`Cannot GET /incidents/by-code/...`).
 
-- [ ] **Step 4: Create `routes/public.ts`**
+- [x] **Step 4: Create `routes/public.ts`**
 
 ```typescript
 // services/incident-service/src/routes/public.ts
@@ -151,7 +161,7 @@ publicRouter.get("/by-code/:joinCode", async (req, res) => {
 });
 ```
 
-- [ ] **Step 5: Write failing tests for service token auth and internal route**
+- [x] **Step 5: Write failing tests for service token auth and internal route**
 
 Append another describe block to `incidents.test.ts`:
 
@@ -196,7 +206,7 @@ describe("GET /internal/incidents/:id/blocks", () => {
 });
 ```
 
-- [ ] **Step 6: Add `requireServiceAuth` to `middleware/auth.ts`**
+- [x] **Step 6: Add `requireServiceAuth` to `middleware/auth.ts`**
 
 Append to `services/incident-service/src/middleware/auth.ts`:
 
@@ -219,7 +229,7 @@ export function requireServiceAuth(
 }
 ```
 
-- [ ] **Step 7: Create `routes/internal.ts`**
+- [x] **Step 7: Create `routes/internal.ts`**
 
 ```typescript
 // services/incident-service/src/routes/internal.ts
@@ -242,7 +252,7 @@ internalRouter.get("/incidents/:id/blocks", async (_req, res) => {
 });
 ```
 
-- [ ] **Step 8: Update `app.ts` to mount the new routers**
+- [x] **Step 8: Update `app.ts` to mount the new routers**
 
 Replace the full contents of `services/incident-service/src/app.ts`:
 
@@ -281,7 +291,7 @@ app.use("/incidents/:id/blocks", blocksRouter);
 app.use("/incidents/:id/links", linksRouter);
 ```
 
-- [ ] **Step 9: Run all incident-service tests**
+- [x] **Step 9: Run all incident-service tests**
 
 ```bash
 npm test -w services/incident-service 2>&1 | tail -20
@@ -289,7 +299,7 @@ npm test -w services/incident-service 2>&1 | tail -20
 
 Expected: all tests pass (69 original + 6 new = 75 total).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add services/incident-service/src/routes/public.ts \
@@ -317,7 +327,7 @@ git commit -m "feat(incident-service): add public by-code endpoint, service toke
 
 ---
 
-- [ ] **Step 1: Create `services/incident-service/Dockerfile`**
+- [x] **Step 1: Create `services/incident-service/Dockerfile`**
 
 ```dockerfile
 # services/incident-service/Dockerfile
@@ -348,7 +358,7 @@ EXPOSE 4000
 CMD ["node", "dist/index.js"]
 ```
 
-- [ ] **Step 2: Create `services/snippet-service/Dockerfile`**
+- [x] **Step 2: Create `services/snippet-service/Dockerfile`**
 
 ```dockerfile
 # services/snippet-service/Dockerfile
@@ -379,7 +389,7 @@ EXPOSE 4001
 CMD ["node", "dist/index.js"]
 ```
 
-- [ ] **Step 3: Create `gateway/kong/kong.yml`**
+- [x] **Step 3: Create `gateway/kong/kong.yml`**
 
 ```yaml
 # gateway/kong/kong.yml
@@ -407,7 +417,7 @@ services:
   # ws-gateway added in Task 5 once the service exists
 ```
 
-- [ ] **Step 4: Update `infra/docker-compose.yml`**
+- [x] **Step 4: Update `infra/docker-compose.yml`**
 
 Replace the file contents with:
 
@@ -461,7 +471,7 @@ services:
   # ws-gateway added in Task 5
 
   kong:
-    image: kong:3.7-alpine
+    image: kong:3.7.1
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
@@ -496,7 +506,7 @@ volumes:
   pgdata:
 ```
 
-- [ ] **Step 5: Verify Dockerfiles build (no test — manual validation)**
+- [x] **Step 5: Verify Dockerfiles build (no test — manual validation)**
 
 ```bash
 docker build -f services/incident-service/Dockerfile -t codetalk-incident-test . 2>&1 | tail -5
@@ -505,7 +515,7 @@ docker build -f services/snippet-service/Dockerfile -t codetalk-snippet-test . 2
 
 Expected: both end with `Successfully built ...` or `naming to docker.io/library/...`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add services/incident-service/Dockerfile \
@@ -537,11 +547,11 @@ git commit -m "feat: Dockerfiles for incident-service + snippet-service, Kong de
 
 ---
 
-- [ ] **Step 1: Create `services/ws-gateway/package.json`**
+- [x] **Step 1: Create `services/ws-gateway/package.json`**
 
 ```json
 {
-  "name": "@war-room/ws-gateway",
+  "name": "@CodeTalk/ws-gateway",
   "version": "0.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -569,7 +579,7 @@ git commit -m "feat: Dockerfiles for incident-service + snippet-service, Kong de
 }
 ```
 
-- [ ] **Step 2: Create `services/ws-gateway/tsconfig.json`**
+- [x] **Step 2: Create `services/ws-gateway/tsconfig.json`**
 
 ```json
 {
@@ -582,7 +592,7 @@ git commit -m "feat: Dockerfiles for incident-service + snippet-service, Kong de
 }
 ```
 
-- [ ] **Step 3: Create `services/ws-gateway/jest.config.ts`**
+- [x] **Step 3: Create `services/ws-gateway/jest.config.ts`**
 
 ```typescript
 import type { Config } from "jest";
@@ -597,7 +607,7 @@ const config: Config = {
 export default config;
 ```
 
-- [ ] **Step 4: Create `services/ws-gateway/.env`**
+- [x] **Step 4: Create `services/ws-gateway/.env`**
 
 ```
 PORT=4002
@@ -606,7 +616,7 @@ SERVICE_TOKEN=internal-test-token
 INCIDENT_SERVICE_URL=http://localhost:4000
 ```
 
-- [ ] **Step 5: Install ws-gateway dependencies**
+- [x] **Step 5: Install ws-gateway dependencies**
 
 ```bash
 npm install -w services/ws-gateway 2>&1 | tail -5
@@ -614,7 +624,7 @@ npm install -w services/ws-gateway 2>&1 | tail -5
 
 Expected: ws, jsonwebtoken, dotenv installed into workspace.
 
-- [ ] **Step 6: Create `services/ws-gateway/src/rooms.ts`**
+- [x] **Step 6: Create `services/ws-gateway/src/rooms.ts`**
 
 ```typescript
 // services/ws-gateway/src/rooms.ts
@@ -678,7 +688,7 @@ export class RoomManager {
 }
 ```
 
-- [ ] **Step 7: Create `services/ws-gateway/src/auth.ts`**
+- [x] **Step 7: Create `services/ws-gateway/src/auth.ts`**
 
 ```typescript
 // services/ws-gateway/src/auth.ts
@@ -759,7 +769,7 @@ export function createDefaultFetcher(): IncidentFetcher {
       const headers = { Authorization: `Service ${tok}` };
       try {
         const [iRes, bRes] = await Promise.all([
-          fetch(`${baseUrl}/incidents/${incidentId}`, { headers }),
+          fetch(`${baseUrl}/internal/incidents/${incidentId}`, { headers }),
           fetch(`${baseUrl}/internal/incidents/${incidentId}/blocks`, {
             headers,
           }),
@@ -778,7 +788,7 @@ export function createDefaultFetcher(): IncidentFetcher {
 }
 ```
 
-- [ ] **Step 8: Create `services/ws-gateway/src/server.ts`**
+- [x] **Step 8: Create `services/ws-gateway/src/server.ts`**
 
 ```typescript
 // services/ws-gateway/src/server.ts
@@ -911,7 +921,7 @@ export function createServer(
 }
 ```
 
-- [ ] **Step 9: Create `services/ws-gateway/src/index.ts`**
+- [x] **Step 9: Create `services/ws-gateway/src/index.ts`**
 
 ```typescript
 // services/ws-gateway/src/index.ts
@@ -938,7 +948,7 @@ httpServer.listen(port, () => {
 });
 ```
 
-- [ ] **Step 10: Verify TypeScript compilation**
+- [x] **Step 10: Verify TypeScript compilation**
 
 ```bash
 npm run build -w services/ws-gateway 2>&1 | tail -10
@@ -946,7 +956,7 @@ npm run build -w services/ws-gateway 2>&1 | tail -10
 
 Expected: exits 0, `dist/` directory created.
 
-- [ ] **Step 11: Commit scaffold**
+- [x] **Step 11: Commit scaffold**
 
 ```bash
 git add services/ws-gateway/
@@ -966,7 +976,7 @@ git commit -m "feat(ws-gateway): scaffold service — rooms, auth, server, index
 
 ---
 
-- [ ] **Step 1: Write the full test file**
+- [x] **Step 1: Write the full test file**
 
 Create `services/ws-gateway/src/__tests__/ws-gateway.test.ts`:
 
@@ -1300,7 +1310,7 @@ describe("viewer / present mode", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests**
+- [x] **Step 2: Run the tests**
 
 ```bash
 npm test -w services/ws-gateway 2>&1 | tail -30
@@ -1308,7 +1318,7 @@ npm test -w services/ws-gateway 2>&1 | tail -30
 
 Expected: all tests pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add services/ws-gateway/src/__tests__/ws-gateway.test.ts
@@ -1331,11 +1341,11 @@ git commit -m "test(ws-gateway): editor connections, present mode, auth failure 
 **Interfaces:**
 - Produces: `docker compose -f infra/docker-compose.yml up` starts the full stack including ws-gateway
 - Produces: Kong routes `/ws` (http + ws protocols) to ws-gateway
-- Produces: `npm run test:e2e` runs gateway smoke tests (auto-skipped when Kong is not up)
+- Produces: `npm run test:e2e` runs gateway smoke tests and fails when Kong is not up
 
 ---
 
-- [ ] **Step 1: Create `services/ws-gateway/Dockerfile`**
+- [x] **Step 1: Create `services/ws-gateway/Dockerfile`**
 
 ```dockerfile
 # services/ws-gateway/Dockerfile
@@ -1366,7 +1376,7 @@ EXPOSE 4002
 CMD ["node", "dist/index.js"]
 ```
 
-- [ ] **Step 2: Add ws-gateway to `infra/docker-compose.yml`**
+- [x] **Step 2: Add ws-gateway to `infra/docker-compose.yml`**
 
 Insert the `ws-gateway` service block after the `snippet-service` block and before the `# ws-gateway added in Task 5` comment (which should be replaced):
 
@@ -1397,7 +1407,7 @@ Also update `kong.depends_on` to include `ws-gateway`:
       - ws-gateway
 ```
 
-- [ ] **Step 3: Add ws-gateway service + route to `gateway/kong/kong.yml`**
+- [x] **Step 3: Add ws-gateway service + route to `gateway/kong/kong.yml`**
 
 Replace the file contents:
 
@@ -1434,11 +1444,9 @@ services:
         protocols:
           - http
           - https
-          - ws
-          - wss
 ```
 
-- [ ] **Step 4: Add scripts to root `package.json`**
+- [x] **Step 4: Add scripts to root `package.json`**
 
 ```json
 {
@@ -1452,7 +1460,7 @@ services:
 }
 ```
 
-- [ ] **Step 5: Create `e2e/tsconfig.json`**
+- [x] **Step 5: Create `e2e/tsconfig.json`**
 
 ```json
 {
@@ -1465,7 +1473,7 @@ services:
 }
 ```
 
-- [ ] **Step 6: Create `e2e/jest.config.ts`**
+- [x] **Step 6: Create `e2e/jest.config.ts`**
 
 ```typescript
 import type { Config } from "jest";
@@ -1486,14 +1494,12 @@ const config: Config = {
 export default config;
 ```
 
-- [ ] **Step 7: Create `e2e/gateway.test.ts`**
+- [x] **Step 7: Create `e2e/gateway.test.ts`**
 
 ```typescript
 // e2e/gateway.test.ts
 // These tests require the full Docker stack to be running:
 //   docker compose -f infra/docker-compose.yml up
-//
-// They are skipped automatically when Kong is not reachable.
 import request from "supertest";
 import jwt from "jsonwebtoken";
 
@@ -1504,35 +1510,14 @@ function token(userId = "00000000-0000-0000-0000-000000000002"): string {
   return `Bearer ${jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: "1h" })}`;
 }
 
-// ── availability check ──────────────────────────────────────────────────────
-let kongUp = false;
-
-beforeAll(async () => {
-  try {
-    const res = await fetch(`${KONG}/incidents/health`, {
-      signal: AbortSignal.timeout(3000),
-    });
-    kongUp = res.ok || res.status === 401; // 401 means Kong is up but auth required
-  } catch {
-    console.warn(
-      "\n  ⚠️  Kong not reachable — e2e tests skipped.\n" +
-        "  Run: docker compose -f infra/docker-compose.yml up\n"
-    );
-  }
-});
-
-function e2e(name: string, fn: () => Promise<void>): void {
-  (kongUp ? test : test.skip)(name, fn);
-}
-
 // ── routing tests ───────────────────────────────────────────────────────────
 
-e2e("Kong routes GET /incidents/:id to incident-service (401 without token)", async () => {
+test("Kong routes GET /incidents/:id to incident-service (401 without token)", async () => {
   const res = await request(KONG).get("/incidents/00000000-0000-0000-0000-000000000001");
   expect(res.status).toBe(401);
 });
 
-e2e("Kong routes POST /auth/token to incident-service", async () => {
+test("Kong routes POST /auth/token to incident-service", async () => {
   const res = await request(KONG)
     .post("/auth/token")
     .send({ userId: "00000000-0000-0000-0000-000000000001" });
@@ -1540,18 +1525,18 @@ e2e("Kong routes POST /auth/token to incident-service", async () => {
   expect(res.body.token).toBeDefined();
 });
 
-e2e("Kong routes GET /snippets to snippet-service (401 without token)", async () => {
+test("Kong routes GET /snippets to snippet-service (401 without token)", async () => {
   const res = await request(KONG).get("/snippets?incidentId=00000000-0000-0000-0000-000000000001");
   expect(res.status).toBe(401);
 });
 
-e2e("public by-code endpoint reachable through Kong without a token", async () => {
+test("public by-code endpoint reachable through Kong without a token", async () => {
   // 404 is fine — no incident exists. What matters is we get through Kong.
   const res = await request(KONG).get("/incidents/by-code/XXXXXX");
   expect([200, 404]).toContain(res.status);
 });
 
-e2e("Kong accepts a valid JWT and proxies to incident-service", async () => {
+test("Kong accepts a valid JWT and proxies to incident-service", async () => {
   // Create an incident end-to-end through Kong
   const create = await request(KONG)
     .post("/incidents")
@@ -1569,7 +1554,7 @@ e2e("Kong accepts a valid JWT and proxies to incident-service", async () => {
 });
 ```
 
-- [ ] **Step 8: Install supertest and jsonwebtoken in e2e dir (use root workspace)**
+- [x] **Step 8: Install supertest and jsonwebtoken in e2e dir (use root workspace)**
 
 The e2e tests use `supertest` and `jsonwebtoken` which are already in the workspace. No additional install needed — ts-jest and jest are also available from the root.
 
@@ -1582,7 +1567,7 @@ node -e "require('ts-jest')" && echo "ok"
 
 Expected: `ok`
 
-- [ ] **Step 9: Run all unit tests to confirm nothing is broken**
+- [x] **Step 9: Run all unit tests to confirm nothing is broken**
 
 ```bash
 npm test -w services/incident-service 2>&1 | tail -5
@@ -1592,7 +1577,7 @@ npm test -w services/ws-gateway 2>&1 | tail -5
 
 Expected: all pass.
 
-- [ ] **Step 10: Commit everything**
+- [x] **Step 10: Commit everything**
 
 ```bash
 git add services/ws-gateway/Dockerfile \
@@ -1624,7 +1609,7 @@ git commit -m "feat: ws-gateway Dockerfile, Kong WS route, docker-compose full s
 - ✅ `user_joined` / `user_left` lifecycle broadcasts
 - ✅ `ping` / `pong`
 - ✅ Auth failure → HTTP 401 before WS opens
-- ✅ e2e tests auto-skipped when Kong not running
+- ✅ e2e tests require the running Kong stack and fail when it is unavailable
 - ✅ `npm run dev:ws-gateway` script
 - ✅ `npm run test:e2e` script
 

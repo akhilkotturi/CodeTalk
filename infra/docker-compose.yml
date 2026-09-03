@@ -59,7 +59,7 @@ services:
       - incident-service
 
   kong:
-    image: kong:3.7-alpine
+    image: kong:3.7.1
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml

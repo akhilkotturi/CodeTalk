@@ -215,6 +215,23 @@ describe("GET /incidents/by-code/:joinCode", () => {
 
 const SERVICE_TOKEN = process.env.SERVICE_TOKEN ?? "internal-test-token";
 
+describe("GET /internal/incidents/:id", () => {
+  it("returns incident metadata with a valid service token", async () => {
+    const created = await request(app)
+      .post("/incidents")
+      .set("Authorization", token())
+      .send({ title: "Snapshot metadata test" });
+
+    const res = await request(app)
+      .get(`/internal/incidents/${created.body.id}`)
+      .set("Authorization", `Service ${SERVICE_TOKEN}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(created.body.id);
+    expect(res.body.title).toBe("Snapshot metadata test");
+  });
+});
+
 describe("GET /internal/incidents/:id/blocks", () => {
   it("returns blocks with a valid service token", async () => {
     const inc = await request(app)

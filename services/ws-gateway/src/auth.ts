@@ -75,7 +75,7 @@ export function createDefaultFetcher(): IncidentFetcher {
       const headers = { Authorization: `Service ${tok}` };
       try {
         const [iRes, bRes] = await Promise.all([
-          fetch(`${baseUrl}/incidents/${incidentId}`, { headers }),
+          fetch(`${baseUrl}/internal/incidents/${incidentId}`, { headers }),
           fetch(`${baseUrl}/internal/incidents/${incidentId}/blocks`, {
             headers,
           }),

@@ -32,5 +32,3 @@ services:
         protocols:
           - http
           - https
-          - ws
-          - wss

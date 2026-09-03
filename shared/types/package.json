@@ -1,5 +1,5 @@
 {
-  "name": "@war-room/types",
+  "name": "@CodeTalk/types",
   "version": "0.0.0",
   "private": true,
   "main": "dist/index.js",
