@@ -5,8 +5,8 @@ breaks mid-build, spin up a shared room: a live canvas for the incident,
 structured logs/hypotheses/fix-attempts, presence, and a recorded postmortem
 you can look back on (or show off) afterward.
 
-> Status: Phases 1–6 complete and locally verified. Phase 7
-> (notification-service + RabbitMQ membership events) is next. See DEVLOG.md
+> Status: Phases 1–7 complete and locally verified. Phase 8
+> (Redis presence state + active-incident caching) is next. See DEVLOG.md
 > for the running story of what got built, what broke, and what I learned.
 
 ## Why this exists
@@ -23,12 +23,12 @@ CodeTalk/
   services/
     incident-service/     # incidents, membership, structured blocks (Postgres)
     snippet-service/       # incident-linked code snippets (Postgres)
-    notification-service/ # planned for Phase 7
+    notification-service/ # RabbitMQ membership-event consumer
     ws-gateway/            # WebSocket canvas/presence sync
   gateway/
     kong/                  # DB-less declarative API gateway
   infra/
-    docker-compose.yml     # Postgres + services + Kong; Redis/MQ stubs for later phases
+    docker-compose.yml     # Postgres + RabbitMQ + services + Kong; Redis stub for later phases
   mcp/
     session-summarizer/      # (planned) MCP server wrapping incident-service
   shared/
@@ -53,8 +53,8 @@ CodeTalk/
 4. Kong in front of services as a router; services retain JWT verification — complete
 5. ws-gateway: real-time canvas sync — complete
 6. Present mode: read-only viewer access via join code — complete
-7. notification-service + message queue for join/leave events — next
-8. Redis for presence state and caching active incidents
+7. notification-service + message queue for join/leave events — complete
+8. Redis for presence state and caching active incidents — next
 9. Load balancing across multiple service and WebSocket gateway instances
 10. Observability (OpenTelemetry, Prometheus/Grafana) across REST + WS paths
 11. MCP server wrapping incident-service for LLM-generated incident summaries
@@ -74,6 +74,9 @@ npm run db:migrate -w services/snippet-service
 
 # 4. Start incident-service
 npm run dev:incident-service
+
+# Optional: start notification-service when RabbitMQ is running
+npm run dev:notification-service
 ```
 
 See `infra/README.md` for more details (psql access, volume management, upcoming services).

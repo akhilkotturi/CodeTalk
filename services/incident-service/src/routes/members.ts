@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { eq, and } from "drizzle-orm";
 import { db } from "../db/index";
 import { incidents, incidentMembers, membershipEvents } from "../db/schema";
+import { publishMembershipEvent } from "../events/membershipPublisher";
 
 async function requireIncident(incidentId: string, res: Response): Promise<boolean> {
   const [row] = await db
@@ -49,10 +50,21 @@ membersRouter.post("/", async (req: Request, res: Response) => {
       return;
     }
 
-    await db.insert(membershipEvents).values({
+    const [event] = await db
+      .insert(membershipEvents)
+      .values({
+        incidentId,
+        userId: userId.trim(),
+        eventType: "joined",
+      })
+      .returning();
+    publishMembershipEvent({
       incidentId,
       userId: userId.trim(),
       eventType: "joined",
+      occurredAt: event.occurredAt,
+    }).catch((publishErr) => {
+      console.error("membership joined publish error:", publishErr);
     });
     res.status(201).json(inserted[0]);
   } catch (err) {
@@ -123,10 +135,21 @@ membersRouter.delete("/:userId", async (req: Request, res: Response) => {
       return;
     }
 
-    await db.insert(membershipEvents).values({
+    const [event] = await db
+      .insert(membershipEvents)
+      .values({
+        incidentId,
+        userId,
+        eventType: "left",
+      })
+      .returning();
+    publishMembershipEvent({
       incidentId,
       userId,
       eventType: "left",
+      occurredAt: event.occurredAt,
+    }).catch((publishErr) => {
+      console.error("membership left publish error:", publishErr);
     });
     res.status(200).json({ deleted: true });
   } catch (err) {

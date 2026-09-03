@@ -2,11 +2,12 @@
 
 Local development infrastructure via Docker Compose.
 
-## Current stack — Phases 1–6
+## Current stack - Phases 1-7
 
 The Compose stack runs Postgres, incident-service, snippet-service,
-ws-gateway, and Kong. Kong exposes HTTP and WebSocket traffic on port 8000;
-its admin API is available on port 8001.
+ws-gateway, RabbitMQ, notification-service, and Kong. Kong exposes HTTP and
+WebSocket traffic on port 8000; its admin API is available on port 8001.
+RabbitMQ exposes AMQP on port 5672 and its management UI on port 15672.
 
 Start:
 ```bash
@@ -54,6 +55,7 @@ With the full stack running and migrations applied:
 
 ```bash
 npm test -w services/incident-service -w services/snippet-service -w services/ws-gateway
+npm test -w services/notification-service
 npm run test:e2e
 ```
 
@@ -63,7 +65,7 @@ The e2e suite requires Kong to be running and fails if the stack is unavailable.
 
 | Phase | Service | Status |
 |-------|---------|--------|
-| 7 | RabbitMQ + notification-service | next; RabbitMQ stub is commented out |
+| 7 | RabbitMQ + notification-service | complete; membership events are published and consumed |
 | 8 | Redis | Redis stub is commented out |
 
 Implement and enable the relevant service block when that phase begins.

@@ -23,11 +23,14 @@ services:
       DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
       SERVICE_TOKEN: ${SERVICE_TOKEN:-internal-dev-token}
+      RABBITMQ_URL: amqp://rabbitmq:5672
       PORT: "4000"
     ports:
       - "4000:4000"
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   snippet-service:
@@ -77,15 +80,34 @@ services:
       - incident-service
       - snippet-service
       - ws-gateway
+      - notification-service
 
   # ── Phase 7: RabbitMQ (membership events / notification-service) ──────────
-  # rabbitmq:
-  #   image: rabbitmq:3.13-management-alpine
-  #   ports:
-  #     - "5672:5672"    # AMQP
-  #     - "15672:15672"  # management UI
-  #   volumes:
-  #     - rabbitmqdata:/var/lib/rabbitmq
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # management UI
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: services/notification-service/Dockerfile
+    environment:
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      PORT: "4003"
+    ports:
+      - "4003:4003"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   # ── Phase 8: Redis (presence state, active-incident caching) ─────────────
   # redis:
@@ -97,5 +119,5 @@ services:
 
 volumes:
   pgdata:
+  rabbitmqdata:
   # redisdata:    # Phase 8
-  # rabbitmqdata: # Phase 7

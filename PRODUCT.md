@@ -35,8 +35,8 @@ CodeTalk is the only incident tool that works before you have an org, an oncall 
 - **Manual external links:** GitHub PR, CI run — deeper OAuth/webhook integration explicitly deferred
 - **Auth:** JWT-based; currently enforced by each service, with Kong acting as the external router
 - **Real-time:** WebSocket canvas sync through ws-gateway
-- **Notifications:** join/leave events via message queue (planned)
-- **Persistence:** Postgres (incidents, membership, blocks); Redis (presence, caching)
+- **Notifications:** join/leave membership events publish to RabbitMQ and are consumed by notification-service; external delivery channels are deferred
+- **Persistence:** Postgres (incidents, membership, blocks); Redis (presence, caching, planned)
 
 ## Brand Commitments
 

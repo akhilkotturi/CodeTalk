@@ -49,5 +49,26 @@ and viewer WebSocket snapshots through Kong.
   check ran, so it always skipped. It now runs normally and fails when the
   required stack is unavailable.
 
-**Current phase:** Phase 7 is next: design and implement notification-service
+**Next at the time:** Phase 7: design and implement notification-service
 and RabbitMQ-backed join/leave membership events.
+
+## 2026-09-03 - Phase 7 notification-service and RabbitMQ membership events
+
+**What:** Added RabbitMQ to the Compose stack and introduced
+notification-service as the membership-event consumer. incident-service now
+publishes versioned join/leave messages to the `codetalk.membership` topic
+exchange after it writes the membership event row to Postgres.
+
+**Why these decisions:**
+- Postgres remains the source of truth. Publishing failures are logged but do
+  not fail a successful join/leave request, because the durable event row still
+  records what happened.
+- RabbitMQ uses a durable topic exchange with `membership.joined` and
+  `membership.left` routing keys, which leaves room for other membership
+  consumers later without changing incident-service routes.
+- notification-service validates the versioned JSON payload and logs consumed
+  events for now. Real delivery channels like Slack, email, or web push are
+  intentionally deferred until the queue path itself is proven.
+
+**Current phase:** Phase 8 is next: Redis-backed presence state and
+active-incident caching.
