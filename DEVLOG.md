@@ -72,3 +72,49 @@ exchange after it writes the membership event row to Postgres.
 
 **Current phase:** Phase 8 is next: Redis-backed presence state and
 active-incident caching.
+
+## 2026-09-03 — apps/web frontend: full TDD build against the approved plan
+
+**What:** Executed the remaining 18 tasks (5-22) of the approved apps/web
+implementation plan: room/cursors stores, the wsClient (editor/viewer
+connect, heartbeat, reconnect backoff, throttled cursor send), every shared
+and canvas/presence/postmortem component, all five screens (Landing,
+CreateIncident, IncidentCanvas, PresentMode, Postmortem), and the App.tsx
+route table wired into main.tsx. Each task followed strict TDD — write the
+test verbatim from the plan, watch it fail for the right reason, write the
+implementation, watch it pass, commit. Cross-checked the wsClient and
+ws-gateway backend (`services/ws-gateway/src/auth.ts`, `src/server.ts`)
+directly against the plan's message/query-param contract before trusting it;
+no drift found.
+
+**What verification caught (plan bugs, not backend contract issues):**
+- `CreateIncident`'s Title `Input` had `required` set, which triggers jsdom's
+  native constraint validation and silently blocks form submission — the
+  plan's own "shows an error on a blank title" test could never reach
+  `handleSubmit`. Dropped `required`; the caught-error Toast path already
+  covers validation messaging.
+- `BlockFeed`'s test asserted the "Log" column header with
+  `screen.getByText("Log")`, which also matches the composer's
+  `<option>Log</option>` once `onCreate` is supplied — ambiguous query, fixed
+  by asserting `getByRole("heading", { name: "Log" })` instead.
+- `Scrubber`'s test helper set `.value` directly on the range input then
+  dispatched a plain `"change"` event, which bypasses React's internal value
+  tracker so `onChange` never fired. Rewrote it to use the native
+  `HTMLInputElement` value setter + dispatch `"input"`, the standard RTL
+  workaround for this exact quirk.
+- The biggest one: `npm run test -w apps/web` stayed green through all 21
+  tasks, but the full `npm run build` failed at the very end. `jest.config.ts`'s
+  ts-jest transform carries its own inline tsconfig override with no
+  `strict: true`, which silently diverges from `apps/web/tsconfig.json`
+  (`strict: true`) used by the real `tsc --noEmit`. Under strict mode,
+  `IncidentBlock` (no index signature) isn't structurally assignable to
+  `Record<string, unknown>` — a mismatch between the room store's
+  `BlockEvent.data` typing and every call site that hands a full block
+  through as WS event data. Fixed with `as unknown as X` casts at each site;
+  no runtime behavior changed, no shared type or backend contract touched.
+  Left as a known gap: the jest ts-jest tsconfig override should eventually
+  just extend the real tsconfig instead of redefining a looser one.
+
+**Next:** Run the `impeccable` design pass against the now-functionally-complete
+dev server (concrete palette, type scale, spacing, motion per the design
+spec) — a deliberately separate pass from this functional build.
