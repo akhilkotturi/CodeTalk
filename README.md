@@ -20,6 +20,8 @@ below maps to an actual feature, not a checkbox.
 
 ```
 CodeTalk/
+  apps/
+    web/                   # React + Vite frontend: landing, live canvas, present mode, postmortem
   services/
     incident-service/     # incidents, membership, structured blocks (Postgres)
     snippet-service/       # incident-linked code snippets (Postgres)
@@ -58,6 +60,7 @@ CodeTalk/
 9. Load balancing across multiple service and WebSocket gateway instances
 10. Observability (OpenTelemetry, Prometheus/Grafana) across REST + WS paths
 11. MCP server wrapping incident-service for LLM-generated incident summaries
+12. Frontend (apps/web): landing, live incident canvas, present mode, postmortem playback — complete
 
 ## Local development
 
@@ -80,6 +83,14 @@ npm run dev:notification-service
 ```
 
 See `infra/README.md` for more details (psql access, volume management, upcoming services).
+
+### Frontend
+
+```bash
+npm run dev:web
+```
+
+Requires the backend stack running (`docker compose -f infra/docker-compose.yml up -d`, plus incident-service/ws-gateway) for anything past the landing screen — the canvas connects to Kong on `:8000`.
 
 ## What I learned
 
