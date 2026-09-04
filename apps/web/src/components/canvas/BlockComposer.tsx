@@ -39,38 +39,40 @@ export function BlockComposer({ onSubmit }: BlockComposerProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 border border-neutral-200 rounded p-3 bg-white">
-      <select
-        aria-label="Block type"
-        value={blockType}
-        onChange={(e) => setBlockType(e.target.value as BlockType)}
-        className="border border-neutral-300 rounded px-2 py-1 text-sm w-fit"
-      >
-        {Object.entries(BLOCK_TYPE_LABELS).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </select>
+    <form onSubmit={handleSubmit} className="composer">
+      <div className="composer-head">
+        <span>Add to the room</span>
+        <select
+          aria-label="Block type"
+          value={blockType}
+          onChange={(e) => setBlockType(e.target.value as BlockType)}
+          className="type-select"
+        >
+          {Object.entries(BLOCK_TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+      </div>
       {blockType === "custom" && (
         <input
           aria-label="Subject"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Subject"
-          className="border border-neutral-300 rounded px-2 py-1 text-sm"
+          className="composer-subject"
         />
       )}
       <textarea
         aria-label="Block body"
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        placeholder="What's happening?"
-        className="border border-neutral-300 rounded p-2 text-sm"
+        placeholder="Share what you know. Keep it specific."
+        className="composer-body"
       />
-      <Button type="submit" disabled={busy}>
-        Add
-      </Button>
+      <div className="composer-foot">
+        <span>Everyone in this room will see it live.</span>
+        <Button type="submit" disabled={busy}>{busy ? "Adding…" : "Add"}</Button>
+      </div>
     </form>
   );
 }

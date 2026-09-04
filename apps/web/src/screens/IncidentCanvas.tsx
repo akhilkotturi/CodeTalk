@@ -74,11 +74,16 @@ export function IncidentCanvas() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 flex flex-col gap-4">
+    <main className="room-shell">
       {reconnecting && <ReconnectBanner />}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">{incident?.title ?? "Incident"}</h1>
-        <div className="flex items-center gap-3">
+      <header className="room-header">
+        <a className="wordmark wordmark-small" href="/">CT<span className="wordmark-dot" aria-hidden="true" /></a>
+        <div className="room-title-group">
+          <div className="room-state active"><span className="signal-pulse" />Live incident</div>
+          <h1>{incident?.title ?? "Incident"}</h1>
+          {incident?.description && <p>{incident.description}</p>}
+        </div>
+        <div className="room-actions">
           {incident && <RoomCodeBadge code={incident.joinCode} />}
           {incident?.status === "active" && (
             <Button variant="danger" onClick={handleResolve}>
@@ -86,9 +91,12 @@ export function IncidentCanvas() {
             </Button>
           )}
         </div>
+      </header>
+      <div className="room-utility">
+        <PresenceList members={members} />
+        <span className="sync-note">Changes sync automatically</span>
       </div>
-      {error && <Toast message={error} variant="error" onDismiss={() => setError(null)} />}
-      <PresenceList members={members} />
+      {error && <div className="room-alert"><Toast message={error} variant="error" onDismiss={() => setError(null)} /></div>}
       <CursorOverlay>
         <BlockFeed
           blocks={blocks}
@@ -98,6 +106,6 @@ export function IncidentCanvas() {
           onDelete={handleDelete}
         />
       </CursorOverlay>
-    </div>
+    </main>
   );
 }

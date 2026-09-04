@@ -6,7 +6,8 @@ interface ScrubberProps {
 
 export function Scrubber({ max, value, onChange }: ScrubberProps) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="scrubber">
+      <span className="scrubber-label">Timeline</span>
       <input
         aria-label="Timeline position"
         type="range"
@@ -14,9 +15,9 @@ export function Scrubber({ max, value, onChange }: ScrubberProps) {
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="flex-1"
+        className="scrubber-input"
       />
-      <span className="text-xs text-neutral-500 font-mono">
+      <span className="scrubber-count">
         {value} / {max}
       </span>
     </div>

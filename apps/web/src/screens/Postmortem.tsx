@@ -26,21 +26,33 @@ export function Postmortem() {
     );
   }, [incidentId, token]);
 
-  if (loading) return <p className="text-center mt-24 text-neutral-500">Loading postmortem…</p>;
+  if (loading) return <main className="center-state"><span className="loading-line" />Loading postmortem…</main>;
 
   if (incident?.status !== "resolved") {
     return (
-      <p className="max-w-sm mx-auto mt-24 text-center text-neutral-600">
-        Postmortem is available once this incident is resolved.
-      </p>
+      <main className="center-state">
+        <a className="wordmark" href="/">CodeTalk<span className="wordmark-dot" aria-hidden="true" /></a>
+        <h1>The story is still being written.</h1>
+        <p>Postmortem is available once this incident is resolved.</p>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 flex flex-col gap-4">
-      <h1 className="text-xl font-semibold text-neutral-900">{incident.title} — Postmortem</h1>
-      <Scrubber max={blocks.length} value={revealedCount} onChange={setRevealedCount} />
+    <main className="room-shell postmortem-shell">
+      <header className="room-header">
+        <a className="wordmark wordmark-small" href="/">CT<span className="wordmark-dot resolved-dot" aria-hidden="true" /></a>
+        <div className="room-title-group">
+          <div className="room-state resolved">Resolved · postmortem</div>
+          <h1>{incident.title}</h1>
+          <p>Replay the room from first signal to root cause.</p>
+        </div>
+        <div className="room-actions"><span className="event-total">{blocks.length} events</span></div>
+      </header>
+      <div className="timeline-panel">
+        <Scrubber max={blocks.length} value={revealedCount} onChange={setRevealedCount} />
+      </div>
       <PlaybackFeed blocks={blocks} revealedCount={revealedCount} />
-    </div>
+    </main>
   );
 }

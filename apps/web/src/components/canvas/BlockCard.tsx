@@ -19,35 +19,39 @@ export function BlockCard({ block, readOnly, onEdit, onDelete }: BlockCardProps)
   }
 
   return (
-    <div className="border border-neutral-200 rounded p-3 flex flex-col gap-2 bg-white">
+    <article className="block-card" data-block-type={block.blockType}>
       {block.subject && (
-        <div className="text-xs uppercase tracking-wide text-neutral-500">{block.subject}</div>
+        <div className="block-subject">{block.subject}</div>
       )}
       {editing ? (
         <textarea
-          className="border border-neutral-300 rounded p-2 text-sm"
+          className="block-edit"
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
       ) : (
-        <p className="text-sm text-neutral-900 whitespace-pre-wrap">{block.body}</p>
+        <p className="block-body">{block.body}</p>
       )}
+      <div className="block-meta">
+        <span>{block.authorId}</span>
+        <time dateTime={block.createdAt}>{new Date(block.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
+      </div>
       {!readOnly && (
-        <div className="flex gap-2 text-xs">
+        <div className="block-actions">
           {editing ? (
             <Button variant="secondary" onClick={handleSave}>
               Save
             </Button>
           ) : (
-            <button className="underline text-neutral-500" onClick={() => setEditing(true)}>
+            <button className="text-button" onClick={() => setEditing(true)}>
               Edit
             </button>
           )}
-          <button className="underline text-neutral-500" onClick={() => onDelete(block.id)}>
+          <button className="text-button delete-action" onClick={() => onDelete(block.id)}>
             Delete
           </button>
         </div>
       )}
-    </div>
+    </article>
   );
 }

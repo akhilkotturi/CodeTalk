@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-04T00:00:00-05:00",
+  "title": "Design System: CodeTalk",
+  "extensions": {
+    "colorMeta": {
+      "charcoal-ink": { "role": "neutral", "displayName": "Charcoal Ink", "tonalRamp": ["color-mix(in srgb, #22221f 55%, black)", "color-mix(in srgb, #22221f 75%, black)", "#22221f", "color-mix(in srgb, #22221f 75%, white)", "color-mix(in srgb, #22221f 55%, white)", "color-mix(in srgb, #22221f 35%, white)", "color-mix(in srgb, #22221f 18%, white)", "color-mix(in srgb, #22221f 7%, white)"] },
+      "muted-ink": { "role": "neutral", "displayName": "Muted Ink", "tonalRamp": ["color-mix(in srgb, #6d6a61 45%, black)", "color-mix(in srgb, #6d6a61 70%, black)", "#6d6a61", "color-mix(in srgb, #6d6a61 78%, white)", "color-mix(in srgb, #6d6a61 58%, white)", "color-mix(in srgb, #6d6a61 38%, white)", "color-mix(in srgb, #6d6a61 20%, white)", "color-mix(in srgb, #6d6a61 8%, white)"] },
+      "warm-paper": { "role": "neutral", "displayName": "Warm Paper", "tonalRamp": ["color-mix(in srgb, #f3f1ea 22%, black)", "color-mix(in srgb, #f3f1ea 40%, black)", "color-mix(in srgb, #f3f1ea 58%, black)", "color-mix(in srgb, #f3f1ea 74%, black)", "color-mix(in srgb, #f3f1ea 88%, black)", "#f3f1ea", "color-mix(in srgb, #f3f1ea 70%, white)", "color-mix(in srgb, #f3f1ea 35%, white)"] },
+      "deep-paper": { "role": "neutral", "displayName": "Deep Paper", "tonalRamp": ["color-mix(in srgb, #e9e6dc 22%, black)", "color-mix(in srgb, #e9e6dc 40%, black)", "color-mix(in srgb, #e9e6dc 58%, black)", "color-mix(in srgb, #e9e6dc 74%, black)", "color-mix(in srgb, #e9e6dc 88%, black)", "#e9e6dc", "color-mix(in srgb, #e9e6dc 70%, white)", "color-mix(in srgb, #e9e6dc 35%, white)"] },
+      "lifted-paper": { "role": "neutral", "displayName": "Lifted Paper", "tonalRamp": ["color-mix(in srgb, #faf8f2 22%, black)", "color-mix(in srgb, #faf8f2 40%, black)", "color-mix(in srgb, #faf8f2 58%, black)", "color-mix(in srgb, #faf8f2 74%, black)", "color-mix(in srgb, #faf8f2 88%, black)", "#faf8f2", "color-mix(in srgb, #faf8f2 70%, white)", "color-mix(in srgb, #faf8f2 35%, white)"] },
+      "quiet-rule": { "role": "neutral", "displayName": "Quiet Rule", "tonalRamp": ["color-mix(in srgb, #cbc7bb 30%, black)", "color-mix(in srgb, #cbc7bb 48%, black)", "color-mix(in srgb, #cbc7bb 66%, black)", "color-mix(in srgb, #cbc7bb 82%, black)", "#cbc7bb", "color-mix(in srgb, #cbc7bb 72%, white)", "color-mix(in srgb, #cbc7bb 42%, white)", "color-mix(in srgb, #cbc7bb 16%, white)"] },
+      "strong-rule": { "role": "neutral", "displayName": "Strong Rule", "tonalRamp": ["color-mix(in srgb, #99958a 35%, black)", "color-mix(in srgb, #99958a 55%, black)", "color-mix(in srgb, #99958a 75%, black)", "#99958a", "color-mix(in srgb, #99958a 78%, white)", "color-mix(in srgb, #99958a 55%, white)", "color-mix(in srgb, #99958a 32%, white)", "color-mix(in srgb, #99958a 12%, white)"] },
+      "signal-ember": { "role": "primary", "displayName": "Signal Ember", "tonalRamp": ["color-mix(in srgb, #c6492d 42%, black)", "color-mix(in srgb, #c6492d 62%, black)", "color-mix(in srgb, #c6492d 82%, black)", "#c6492d", "color-mix(in srgb, #c6492d 80%, white)", "color-mix(in srgb, #c6492d 58%, white)", "color-mix(in srgb, #c6492d 35%, white)", "color-mix(in srgb, #c6492d 14%, white)"] },
+      "deep-ember": { "role": "primary", "displayName": "Deep Ember", "tonalRamp": ["color-mix(in srgb, #96341f 45%, black)", "color-mix(in srgb, #96341f 68%, black)", "#96341f", "color-mix(in srgb, #96341f 82%, white)", "color-mix(in srgb, #96341f 62%, white)", "color-mix(in srgb, #96341f 42%, white)", "color-mix(in srgb, #96341f 23%, white)", "color-mix(in srgb, #96341f 9%, white)"] },
+      "ember-wash": { "role": "primary", "displayName": "Ember Wash", "tonalRamp": ["color-mix(in srgb, #f4ded6 25%, black)", "color-mix(in srgb, #f4ded6 43%, black)", "color-mix(in srgb, #f4ded6 61%, black)", "color-mix(in srgb, #f4ded6 78%, black)", "#f4ded6", "color-mix(in srgb, #f4ded6 70%, white)", "color-mix(in srgb, #f4ded6 40%, white)", "color-mix(in srgb, #f4ded6 15%, white)"] },
+      "resolved-moss": { "role": "secondary", "displayName": "Resolved Moss", "tonalRamp": ["color-mix(in srgb, #4f735b 42%, black)", "color-mix(in srgb, #4f735b 64%, black)", "color-mix(in srgb, #4f735b 84%, black)", "#4f735b", "color-mix(in srgb, #4f735b 80%, white)", "color-mix(in srgb, #4f735b 58%, white)", "color-mix(in srgb, #4f735b 35%, white)", "color-mix(in srgb, #4f735b 14%, white)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Oversized landing and incident-creation statements." },
+      "headline": { "displayName": "Headline", "purpose": "Incident titles and centered state messages." },
+      "title": { "displayName": "Title", "purpose": "Panel headings." },
+      "body": { "displayName": "Body", "purpose": "Evidence, descriptions, and supporting prose." },
+      "label": { "displayName": "Label", "purpose": "Uppercase field, utility, and column labels." },
+      "mono": { "displayName": "Operational Mono", "purpose": "Codes, timestamps, counts, indices, and terse states." }
+    },
+    "shadows": [
+      { "name": "live-signal-pulse-start", "value": "0 0 0 0 rgba(198,73,45,.28)", "purpose": "Opening frame of the active-status pulse." },
+      { "name": "live-signal-pulse-end", "value": "0 0 0 6px rgba(198,73,45,0)", "purpose": "Expanded frame of the active-status pulse." },
+      { "name": "column-type-inset", "value": "inset 0 2px currentColor", "purpose": "Two-pixel category key at the top of evidence columns." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Press response and live-signal expansion." },
+      { "name": "state-transition", "value": "160ms ease", "purpose": "Color, background, and border feedback." },
+      { "name": "press-transition", "value": "140ms cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Button active scale to 0.98." },
+      { "name": "live-signal", "value": "2s cubic-bezier(0.23, 1, 0.32, 1) infinite", "purpose": "Repeating active-state pulse; suppressed by reduced-motion preference." }
+    ],
+    "breakpoints": [
+      { "name": "stacked", "value": "900px" },
+      { "name": "compact", "value": "560px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default high-contrast action for opening rooms and adding evidence.",
+      "html": "<button class=\"ds-button ds-button-primary\">CREATE ROOM</button>",
+      "css": ".ds-button { min-height:44px; border:1px solid transparent; border-radius:0; padding:.68rem 1.05rem; font:760 .76rem 'Manrope Variable','Helvetica Neue',sans-serif; letter-spacing:.035em; transition:color 160ms ease,background-color 160ms ease,border-color 160ms ease,transform 140ms cubic-bezier(.23,1,.32,1); cursor:pointer; } .ds-button-primary { background:var(--ink,#22221f); color:var(--surface,#faf8f2); } .ds-button-primary:hover { background:#3a3934; } .ds-button:focus-visible { outline:2px solid var(--ember,#c6492d); outline-offset:3px; } .ds-button:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined low-emphasis action for joining and saving edits.",
+      "html": "<button class=\"ds-button ds-button-secondary\">JOIN</button>",
+      "css": ".ds-button { min-height:44px; border-radius:0; padding:.68rem 1.05rem; font:760 .76rem 'Manrope Variable','Helvetica Neue',sans-serif; letter-spacing:.035em; transition:color 160ms ease,background-color 160ms ease,border-color 160ms ease,transform 140ms cubic-bezier(.23,1,.32,1); cursor:pointer; } .ds-button-secondary { border:1px solid var(--rule-dark,#99958a); background:transparent; color:var(--ink,#22221f); } .ds-button-secondary:hover { border-color:var(--ink,#22221f); background:var(--paper-deep,#e9e6dc); } .ds-button:focus-visible { outline:2px solid var(--ember,#c6492d); outline-offset:3px; } .ds-button:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Ember action reserved for consequential incident operations.",
+      "html": "<button class=\"ds-button ds-button-danger\">RESOLVE</button>",
+      "css": ".ds-button { min-height:44px; border:1px solid transparent; border-radius:0; padding:.68rem 1.05rem; font:760 .76rem 'Manrope Variable','Helvetica Neue',sans-serif; letter-spacing:.035em; transition:background-color 160ms ease,transform 140ms cubic-bezier(.23,1,.32,1); cursor:pointer; } .ds-button-danger { background:var(--ember,#c6492d); color:#fff8f3; } .ds-button-danger:hover { background:var(--ember-dark,#96341f); } .ds-button:focus-visible { outline:2px solid var(--ember,#c6492d); outline-offset:3px; } .ds-button:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Square lifted-paper input with a compact uppercase label.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">YOUR NAME</span><input class=\"ds-field-input\" placeholder=\"How your team will see you\"></label>",
+      "css": ".ds-field { display:flex; flex-direction:column; gap:.55rem; color:var(--muted,#6d6a61); font-family:'Manrope Variable','Helvetica Neue',sans-serif; } .ds-field-label { font-size:.72rem; font-weight:700; letter-spacing:.06em; } .ds-field-input { min-height:52px; border:1px solid var(--rule,#cbc7bb); border-radius:0; padding:.8rem .95rem; background:var(--surface,#faf8f2); color:var(--ink,#22221f); font:400 .92rem 'Manrope Variable','Helvetica Neue',sans-serif; transition:border-color 160ms ease,background-color 160ms ease; } .ds-field-input:focus { border-color:var(--ink,#22221f); outline:none; background:#fffdf7; } .ds-field-input:focus-visible { outline:2px solid var(--ember,#c6492d); outline-offset:3px; }"
+    },
+    {
+      "name": "Room Code Badge",
+      "kind": "chip",
+      "description": "Operational identifier pairing a small label with a tracked mono code.",
+      "html": "<span class=\"ds-room-code\"><span class=\"ds-room-label\">ROOM</span><span>ABC123</span></span>",
+      "css": ".ds-room-code { display:inline-flex; align-items:center; gap:.65rem; border:1px solid var(--rule-dark,#99958a); border-radius:0; padding:.68rem .8rem; color:var(--ink,#22221f); font:500 .73rem 'IBM Plex Mono',monospace; letter-spacing:.11em; } .ds-room-label { color:var(--muted,#6d6a61); font:700 .62rem 'Manrope Variable',sans-serif; letter-spacing:.07em; }"
+    },
+    {
+      "name": "Block Card",
+      "kind": "card",
+      "refersTo": "block-card",
+      "description": "Rule-separated evidence entry with compact subject and mono provenance.",
+      "html": "<article class=\"ds-block-card\"><div class=\"ds-block-subject\">OBSERVATION</div><p class=\"ds-block-body\">Checkout failures began after the cache rollout.</p><div class=\"ds-block-meta\"><span>AKHIL</span><time>14:32</time></div></article>",
+      "css": ".ds-block-card { display:flex; flex-direction:column; gap:.8rem; border-bottom:1px solid var(--rule,#cbc7bb); border-radius:0; padding:1rem; background:transparent; color:var(--ink,#22221f); font-family:'Manrope Variable','Helvetica Neue',sans-serif; transition:background-color 160ms ease; } .ds-block-card:hover { background:rgba(255,255,255,.42); } .ds-block-subject { color:var(--muted,#6d6a61); font-size:.65rem; font-weight:750; letter-spacing:.07em; } .ds-block-body { margin:0; font-size:.82rem; line-height:1.55; } .ds-block-meta { display:flex; justify-content:space-between; color:var(--muted,#6d6a61); font:500 .59rem 'IBM Plex Mono',monospace; }"
+    },
+    {
+      "name": "Error Toast",
+      "kind": "custom",
+      "description": "Square ember-wash alert with an underlined dismissal action.",
+      "html": "<div class=\"ds-toast\" role=\"alert\"><span>Could not resolve the incident.</span><button class=\"ds-toast-action\">DISMISS</button></div>",
+      "css": ".ds-toast { display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px solid #d7a99c; border-radius:0; padding:.8rem .9rem; background:var(--ember-wash,#f4ded6); color:#792b1a; font:400 .78rem/1.45 'Manrope Variable','Helvetica Neue',sans-serif; } .ds-toast-action { border:0; padding:0; background:transparent; color:inherit; font:700 .68rem 'Manrope Variable',sans-serif; text-decoration:underline; text-underline-offset:.24em; cursor:pointer; } .ds-toast-action:hover { text-decoration-thickness:2px; } .ds-toast-action:focus-visible { outline:2px solid var(--ember,#c6492d); outline-offset:3px; }"
+    },
+    {
+      "name": "Live Room State",
+      "kind": "custom",
+      "description": "Tracked mono live-state label with the restrained ember pulse.",
+      "html": "<span class=\"ds-room-state\"><span class=\"ds-signal\"></span>LIVE INCIDENT</span>",
+      "css": ".ds-room-state { display:inline-flex; align-items:center; gap:.6rem; color:var(--ember-dark,#96341f); font:650 .65rem 'IBM Plex Mono',monospace; letter-spacing:.09em; } .ds-signal { width:.48rem; height:.48rem; border-radius:50%; background:var(--ember,#c6492d); animation:ds-signal 2s cubic-bezier(.23,1,.32,1) infinite; } @keyframes ds-signal { 0%,100% { box-shadow:0 0 0 0 rgba(198,73,45,.28); } 55% { box-shadow:0 0 0 6px rgba(198,73,45,0); } } @media (prefers-reduced-motion:reduce) { .ds-signal { animation-duration:.01ms; animation-iteration-count:1; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Incident Ledger",
+    "overview": "CodeTalk feels like a warm paper operations ledger made live: calm charcoal type, crisp rules, and dense evidence arranged for scanning under pressure. The editorial scale creates urgency through hierarchy rather than visual noise, while the workspace stays utilitarian and legible.\n\nThe system is flat, square, and deliberately restrained. Ember appears only where attention is operationally urgent; moss closes the loop when an incident is resolved. Motion is brief and state-bearing, with a reduced-motion path built into the global layer.",
+    "keyCharacteristics": [
+      "Warm paper and charcoal foundations separated by hairline rules.",
+      "Oversized, tightly tracked Manrope headlines paired with compact operational labels.",
+      "IBM Plex Mono reserved for codes, counts, states, and timestamps.",
+      "Square controls and border-defined regions rather than floating cards.",
+      "A persistent five-column evidence workspace that becomes a horizontal snap track on small screens."
+    ],
+    "rules": [
+      { "name": "The Two-State Accent Rule", "body": "Ember means active urgency; moss means resolved state. Never use either as general decoration.", "section": "colors" },
+      { "name": "The Ruled Paper Rule", "body": "Separate information with neutral paper shifts and one-pixel rules before introducing a new color.", "section": "colors" },
+      { "name": "The Operational Mono Rule", "body": "Use IBM Plex Mono only for codes, timestamps, counters, indices, and terse machine-like states; prose and ordinary labels remain Manrope.", "section": "typography" },
+      { "name": "The Scale, Then Restrain Rule", "body": "Create emphasis with Manrope size and tight tracking; do not add a decorative display face.", "section": "typography" },
+      { "name": "The Five Lanes Rule", "body": "Logs, hypotheses, fix attempts, root cause, and custom evidence remain distinct columns at every viewport; responsiveness changes navigation, not information architecture.", "section": "layout" },
+      { "name": "The Flat Ledger Rule", "body": "Surfaces stay flush and ruled; do not use ambient drop shadows to manufacture hierarchy.", "section": "elevation" },
+      { "name": "The Circles Are Alive Rule", "body": "Circular geometry belongs to people, presence, and status signals; content containers and controls remain square.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do preserve the paper-and-rule structure before adding any new surface treatment.",
+      "Do use ember for active urgency and moss for resolved state.",
+      "Do keep the five evidence types visually and spatially distinct on every viewport.",
+      "Do respect reduced-motion preferences and keep feedback transitions between 140ms and 180ms.",
+      "Do reserve IBM Plex Mono for operational data that benefits from fixed-width scanning."
+    ],
+    "donts": [
+      "Don't use ember or moss as decorative brand color across large areas.",
+      "Don't round cards, buttons, fields, alerts, or badges; circles belong to live actors and signals.",
+      "Don't add ambient drop shadows, gradients, glass effects, or floating card stacks.",
+      "Don't collapse the incident workspace into one undifferentiated vertical feed on mobile.",
+      "Don't introduce glyph-only controls or a decorative display typeface; neither belongs to the shipped visual language."
+    ]
+  }
+}

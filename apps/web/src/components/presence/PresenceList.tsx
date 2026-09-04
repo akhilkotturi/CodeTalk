@@ -2,15 +2,17 @@ import type { RoomMember } from "../../lib/store/room";
 
 export function PresenceList({ members }: { members: RoomMember[] }) {
   return (
-    <ul aria-label="Presence" className="flex gap-2 flex-wrap">
+    <div className="presence-bar">
+      <span className="presence-label">In the room</span>
+      <ul aria-label="Presence" className="presence-list">
       {members.map((member) => (
-        <li
-          key={member.userId}
-          className="text-xs px-2 py-1 rounded-full border border-neutral-300 text-neutral-700"
-        >
-          {member.userId} · {member.role}
+        <li key={member.userId} className="presence-person">
+          <span className="presence-avatar" aria-hidden="true">{member.userId.slice(0, 1).toUpperCase()}</span>
+          <span>{member.userId} · {member.role}</span>
         </li>
       ))}
-    </ul>
+      </ul>
+      {members.length === 0 && <span className="presence-empty">Waiting for teammates</span>}
+    </div>
   );
 }

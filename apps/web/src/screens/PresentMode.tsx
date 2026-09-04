@@ -34,24 +34,32 @@ export function PresentMode() {
 
   if (invalidCode) {
     return (
-      <div className="max-w-sm mx-auto mt-24">
+      <main className="center-state">
+        <a className="wordmark" href="/">CodeTalk<span className="wordmark-dot" aria-hidden="true" /></a>
         <Toast
           message="This room code is invalid or no longer active."
           variant="error"
           onDismiss={() => {}}
         />
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">{incident?.title ?? "Incident"}</h1>
+    <main className="room-shell present-shell">
+      <header className="room-header">
+        <a className="wordmark wordmark-small" href="/">CT<span className="wordmark-dot" aria-hidden="true" /></a>
+        <div className="room-title-group">
+          <div className="room-state active"><span className="signal-pulse" />Present mode · live</div>
+          <h1>{incident?.title ?? "Incident"}</h1>
+          <p>Read-only view · updates appear as the team works</p>
+        </div>
+        <div className="room-actions">
         {joinCode && <RoomCodeBadge code={joinCode} />}
-      </div>
-      <PresenceList members={members} />
+        </div>
+      </header>
+      <div className="room-utility"><PresenceList members={members} /></div>
       <BlockFeed blocks={blocks} readOnly />
-    </div>
+    </main>
   );
 }

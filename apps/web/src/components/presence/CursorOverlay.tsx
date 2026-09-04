@@ -16,13 +16,13 @@ export function CursorOverlay({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div ref={containerRef} onMouseMove={handleMouseMove} className="relative">
+    <div ref={containerRef} onMouseMove={handleMouseMove} className="cursor-stage">
       {children}
       {Object.entries(positions).map(([userId, position]) => (
         <div
           key={userId}
           data-testid={`cursor-${userId}`}
-          className="pointer-events-none absolute h-2 w-2 rounded-full bg-neutral-900"
+          className="remote-cursor"
           style={{ left: `${position.x * 100}%`, top: `${position.y * 100}%` }}
         />
       ))}

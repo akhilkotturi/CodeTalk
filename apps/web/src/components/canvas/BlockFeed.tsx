@@ -23,12 +23,15 @@ export function BlockFeed({ blocks, readOnly, onCreate, onEdit, onDelete }: Bloc
   const groups = groupBlocksByType(blocks);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="block-workspace">
       {!readOnly && onCreate && <BlockComposer onSubmit={onCreate} />}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="block-grid">
         {BLOCK_TYPE_ORDER.map((type) => (
-          <div key={type} className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold text-neutral-600">{COLUMN_LABELS[type]}</h2>
+          <section key={type} className="block-column" data-block-type={type}>
+            <header className="column-head">
+              <h2>{COLUMN_LABELS[type]}</h2>
+              <span>{groups[type].length.toString().padStart(2, "0")}</span>
+            </header>
             {groups[type].map((block) => (
               <BlockCard
                 key={block.id}
@@ -38,7 +41,8 @@ export function BlockFeed({ blocks, readOnly, onCreate, onEdit, onDelete }: Bloc
                 onDelete={onDelete ?? (() => {})}
               />
             ))}
-          </div>
+            {groups[type].length === 0 && <p className="column-empty">Nothing recorded yet</p>}
+          </section>
         ))}
       </div>
     </div>
