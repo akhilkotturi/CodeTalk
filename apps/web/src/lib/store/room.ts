@@ -35,7 +35,7 @@ export const useRoomStore = create<RoomState>((set) => ({
       if (event.action === "deleted") {
         return { blocks: state.blocks.filter((b) => b.id !== event.blockId) };
       }
-      const incoming = event.data as IncidentBlock;
+      const incoming = event.data as unknown as IncidentBlock;
       const index = state.blocks.findIndex((b) => b.id === event.blockId);
       if (index === -1) return { blocks: [...state.blocks, incoming] };
       const blocks = state.blocks.slice();

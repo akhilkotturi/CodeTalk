@@ -42,18 +42,20 @@ export function IncidentCanvas() {
 
   async function handleCreate(input: { blockType: BlockType; body: string; subject?: string }) {
     const block = await createBlock(token, incidentId!, input);
+    const data = block as unknown as Record<string, unknown>;
     useRoomStore
       .getState()
-      .applyBlockEvent({ userId, blockId: block.id, action: "created", data: block });
-    wsClient.sendBlockEvent(block.id, "created", block);
+      .applyBlockEvent({ userId, blockId: block.id, action: "created", data });
+    wsClient.sendBlockEvent(block.id, "created", data);
   }
 
   async function handleEdit(blockId: string, patch: { body?: string; subject?: string }) {
     const block = await updateBlock(token, incidentId!, blockId, patch);
+    const data = block as unknown as Record<string, unknown>;
     useRoomStore
       .getState()
-      .applyBlockEvent({ userId, blockId: block.id, action: "updated", data: block });
-    wsClient.sendBlockEvent(block.id, "updated", block);
+      .applyBlockEvent({ userId, blockId: block.id, action: "updated", data });
+    wsClient.sendBlockEvent(block.id, "updated", data);
   }
 
   async function handleDelete(blockId: string) {

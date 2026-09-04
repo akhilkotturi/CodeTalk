@@ -39,7 +39,7 @@ describe("room store", () => {
       userId: "ada",
       blockId: block.id,
       action: "created",
-      data: block,
+      data: block as unknown as Record<string, unknown>,
     });
 
     expect(useRoomStore.getState().blocks).toEqual([block]);
