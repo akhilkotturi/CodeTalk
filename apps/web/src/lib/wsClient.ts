@@ -1,6 +1,7 @@
-import type { BlockEventAction, ClientMessage, ServerMessage } from "@CodeTalk/types";
+import type { BlockEventAction, ClientMessage, ProjectServerMessage, ServerMessage, TaskEventAction } from "@CodeTalk/types";
 import { useRoomStore } from "./store/room";
 import { useCursorsStore } from "./store/cursors";
+import { useTaskStore } from "./store/tasks";
 
 const WS_BASE_URL = "ws://localhost:8000";
 const HEARTBEAT_INTERVAL_MS = 15000;
@@ -10,6 +11,7 @@ const RECONNECT_MAX_DELAY_MS = 8000;
 
 export type ConnectOptions =
   | { role: "editor"; token: string; incidentId: string }
+  | { role: "project_editor"; token: string; projectId: string }
   | { role: "viewer"; joinCode: string };
 
 export interface ConnectionCallbacks {
@@ -32,9 +34,9 @@ let currentFactory: WsFactory = (url) => new WebSocket(url);
 
 function buildUrl(options: ConnectOptions): string {
   const url = new URL("/ws", WS_BASE_URL.replace(/^ws/, "http"));
-  if (options.role === "editor") {
+  if (options.role === "editor" || options.role === "project_editor") {
     url.searchParams.set("token", options.token);
-    url.searchParams.set("incidentId", options.incidentId);
+    url.searchParams.set(options.role === "editor" ? "incidentId" : "projectId", options.role === "editor" ? options.incidentId : options.projectId);
   } else {
     url.searchParams.set("joinCode", options.joinCode);
   }
@@ -49,9 +51,9 @@ function clearTimers(): void {
 }
 
 function handleMessage(raw: string): void {
-  let message: ServerMessage;
+  let message: ServerMessage | ProjectServerMessage;
   try {
-    message = JSON.parse(raw) as ServerMessage;
+    message = JSON.parse(raw) as ServerMessage | ProjectServerMessage;
   } catch {
     return;
   }
@@ -74,6 +76,9 @@ function handleMessage(raw: string): void {
       useCursorsStore.getState().setCursor(message.userId, message.x, message.y);
       break;
     case "pong":
+      break;
+    case "task_event":
+      useTaskStore.getState().applyEvent(message);
       break;
   }
 }
@@ -156,4 +161,8 @@ export function sendCursorMove(x: number, y: number): void {
   if (now - lastCursorSentAt < CURSOR_THROTTLE_MS) return;
   lastCursorSentAt = now;
   sendRaw({ type: "cursor_move", x, y });
+}
+
+export function sendTaskEvent(taskId: string, action: TaskEventAction, data: Record<string, unknown>): void {
+  sendRaw({ type: "task_event", taskId, action, data });
 }

@@ -22,6 +22,14 @@ services:
           - /snippets
         strip_path: false
 
+  - name: project-service
+    url: http://project-service:4004
+    routes:
+      - name: project-routes
+        paths:
+          - /projects
+        strip_path: false
+
   - name: ws-gateway
     url: http://ws-gateway:4002
     routes:

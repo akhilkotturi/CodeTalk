@@ -17,6 +17,7 @@ skills-lock.json
 docs/
 .worktrees/
 .superpowers/
+.impeccable/
 
 # macOS
 .DS_Store

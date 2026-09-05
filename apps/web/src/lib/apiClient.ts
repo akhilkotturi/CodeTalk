@@ -1,4 +1,14 @@
-import type { Incident, IncidentBlock, IncidentMember, BlockType } from "@CodeTalk/types";
+import type { Incident, IncidentBlock, IncidentMember, BlockType, ProjectTask } from "@CodeTalk/types";
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  ownerId: string;
+  joinCode: string;
+  createdAt: string;
+  role: "owner" | "editor" | "viewer";
+}
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -31,8 +41,39 @@ async function request<T>(
   return (await res.json()) as T;
 }
 
-export function issueToken(displayName: string): Promise<{ token: string }> {
+export function issueToken(displayName: string): Promise<{ token: string; userId?: string }> {
   return request("/auth/token", { method: "POST", body: { userId: displayName } });
+}
+
+export function createProject(
+  token: string,
+  input: { name: string; description?: string }
+): Promise<Project> {
+  return request("/projects", { method: "POST", token, body: input });
+}
+
+export function joinProject(token: string, joinCode: string): Promise<Project> {
+  return request("/projects/join", { method: "POST", token, body: { joinCode } });
+}
+
+export function getProject(token: string, projectId: string): Promise<Project> {
+  return request(`/projects/${projectId}`, { token });
+}
+
+export function listTasks(token: string, projectId: string): Promise<ProjectTask[]> {
+  return request(`/projects/${projectId}/tasks`, { token });
+}
+
+export function createTask(token: string, projectId: string, input: { title: string; description?: string }): Promise<ProjectTask> {
+  return request(`/projects/${projectId}/tasks`, { method: "POST", token, body: input });
+}
+
+export function updateTask(token: string, projectId: string, taskId: string, patch: Partial<Pick<ProjectTask, "title" | "description" | "status" | "position">>): Promise<ProjectTask> {
+  return request(`/projects/${projectId}/tasks/${taskId}`, { method: "PATCH", token, body: patch });
+}
+
+export function deleteTask(token: string, projectId: string, taskId: string): Promise<void> {
+  return request(`/projects/${projectId}/tasks/${taskId}`, { method: "DELETE", token });
 }
 
 export function createIncident(

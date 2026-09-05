@@ -1,5 +1,22 @@
 export type BlockType = "log" | "hypothesis" | "fix_attempt" | "root_cause" | "custom";
 
+export type TaskStatus = "backlog" | "doing" | "blocked" | "done";
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  position: number;
+  assigneeId: string | null;
+  dueLabel: string | null;
+  githubUrl: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Incident {
   id: string;
   title: string;
@@ -92,4 +109,28 @@ export interface PingMessage {
   type: "ping";
 }
 
-export type ClientMessage = BlockEventClientMessage | CursorMoveClientMessage | PingMessage;
+export type ClientMessage = BlockEventClientMessage | CursorMoveClientMessage | TaskEventClientMessage | PingMessage;
+
+export type TaskEventAction = "created" | "updated" | "deleted";
+
+export interface TaskEventMessage {
+  type: "task_event";
+  userId: string;
+  taskId: string;
+  action: TaskEventAction;
+  data: Record<string, unknown>;
+}
+
+export interface ProjectUserJoinedMessage {
+  type: "project_user_joined";
+  userId: string;
+}
+
+export type ProjectServerMessage = TaskEventMessage | ProjectUserJoinedMessage | PongMessage;
+
+export interface TaskEventClientMessage {
+  type: "task_event";
+  taskId: string;
+  action: TaskEventAction;
+  data: Record<string, unknown>;
+}

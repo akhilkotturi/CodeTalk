@@ -5,11 +5,17 @@ import { IncidentCanvas } from "./screens/IncidentCanvas";
 import { PresentMode } from "./screens/PresentMode";
 import { Postmortem } from "./screens/Postmortem";
 import { RequireAuth } from "./components/RequireAuth";
+import { CreateProject } from "./screens/CreateProject";
+import { ProjectOverview } from "./screens/ProjectOverview";
+import { TaskBoard } from "./screens/TaskBoard";
 
 export function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/projects/new" element={<RequireAuth><CreateProject /></RequireAuth>} />
+      <Route path="/projects/:id/overview" element={<RequireAuth><ProjectOverview /></RequireAuth>} />
+      <Route path="/projects/:id/tasks" element={<RequireAuth><TaskBoard /></RequireAuth>} />
       <Route
         path="/incidents/new"
         element={

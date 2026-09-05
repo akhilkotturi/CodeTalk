@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/shared/Button";
 import { Input } from "../components/shared/Input";
 import { Toast } from "../components/shared/Toast";
-import { issueToken, getIncidentByJoinCode, addMember } from "../lib/apiClient";
+import { issueToken, getIncidentByJoinCode, addMember, joinProject } from "../lib/apiClient";
+import { isUuid } from "../lib/identity";
 import { useSessionStore } from "../lib/store/session";
 
 export function Landing() {
@@ -11,16 +12,20 @@ export function Landing() {
   const session = useSessionStore();
   const [displayName, setDisplayName] = useState(session.displayName ?? "");
   const [joinCode, setJoinCode] = useState("");
+  const [projectCode, setProjectCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function ensureSession(): Promise<{ token: string; userId: string }> {
-    if (session.token && session.userId) return { token: session.token, userId: session.userId };
+    if (session.token && isUuid(session.userId)) {
+      return { token: session.token, userId: session.userId };
+    }
     const trimmed = displayName.trim();
     if (!trimmed) throw new Error("Enter your name first");
-    const { token } = await issueToken(trimmed);
-    session.setSession({ token, userId: trimmed, displayName: trimmed });
-    return { token, userId: trimmed };
+    const { token, userId } = await issueToken(trimmed);
+    const identity = userId ?? trimmed;
+    session.setSession({ token, userId: identity, displayName: trimmed });
+    return { token, userId: identity };
   }
 
   async function handleCreate() {
@@ -48,6 +53,33 @@ export function Landing() {
       navigate(`/incidents/${incident.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Room not found");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCreateProject() {
+    setError(null);
+    setBusy(true);
+    try {
+      await ensureSession();
+      navigate("/projects/new");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleJoinProject() {
+    setError(null);
+    setBusy(true);
+    try {
+      const { token } = await ensureSession();
+      const project = await joinProject(token, projectCode.trim().toUpperCase());
+      navigate(`/projects/${project.id}/overview`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Project not found");
     } finally {
       setBusy(false);
     }
@@ -93,6 +125,23 @@ export function Landing() {
             autoComplete="name"
           />
           {error && <Toast message={error} variant="error" onDismiss={() => setError(null)} />}
+          <Button variant="secondary" onClick={handleCreateProject} disabled={busy} className="wide-button">
+            Create project
+          </Button>
+          <div className="join-row">
+            <Input
+              label="Project code"
+              value={projectCode}
+              onChange={(e) => setProjectCode(e.target.value)}
+              placeholder="PROJECT"
+              className="code-input"
+              maxLength={12}
+            />
+            <Button variant="secondary" onClick={handleJoinProject} disabled={busy}>
+              Join project
+            </Button>
+          </div>
+          <div className="panel-divider"><span>or open a debug room</span></div>
           <Button onClick={handleCreate} disabled={busy} className="wide-button">
             {busy ? "Opening room…" : "Create room"}
           </Button>

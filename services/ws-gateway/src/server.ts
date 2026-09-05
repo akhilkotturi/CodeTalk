@@ -7,6 +7,7 @@ import {
   IncidentFetcher,
 } from "./auth";
 import { RoomManager, Client } from "./rooms";
+import { createRedisPresenceStore } from "./redis";
 
 interface ServerOptions {
   rooms?: RoomManager;
@@ -25,7 +26,7 @@ export function createServer(
   httpServer: HttpServer,
   options: ServerOptions = {}
 ): WebSocketServer {
-  const rooms = options.rooms ?? new RoomManager();
+  const rooms = options.rooms ?? new RoomManager(createRedisPresenceStore());
   const fetcher = options.fetcher ?? createDefaultFetcher();
 
   const wss = new WebSocketServer({ server: httpServer });
@@ -48,20 +49,55 @@ export function createServer(
       ws,
       role: auth.role,
       userId: auth.userId,
-      incidentId: auth.incidentId,
+      incidentId: "incidentId" in auth ? auth.incidentId : undefined,
+      projectId: "projectId" in auth ? auth.projectId : undefined,
     };
 
     rooms.join(client);
 
+    if (client.projectId) {
+      const roomId = `project:${client.projectId}`;
+      rooms.broadcast(roomId, { type: "project_user_joined", userId: client.userId }, client);
+      ws.on("message", (data) => {
+        let msg: Record<string, unknown>;
+        try { msg = JSON.parse(data.toString()) as Record<string, unknown>; } catch { return; }
+        if (msg.type === "ping") {
+          rooms.touch(client);
+          ws.send(JSON.stringify({ type: "pong" }));
+          return;
+        }
+        if (msg.type === "task_event") {
+          rooms.broadcast(roomId, {
+            type: "task_event",
+            userId: client.userId,
+            taskId: msg.taskId,
+            action: msg.action,
+            data: msg.data,
+          }, client);
+        }
+      });
+      ws.on("close", () => {
+        rooms.leave(client);
+        rooms.broadcast(roomId, { type: "user_left", userId: client.userId });
+      });
+      return;
+    }
+
+    const incidentId = client.incidentId;
+    if (!incidentId) {
+      ws.close(4400);
+      return;
+    }
+
     // Notify existing room members that someone joined
     rooms.broadcast(
-      client.incidentId,
+      incidentId,
       { type: "user_joined", userId: client.userId, role: client.role },
       client
     );
 
     // Send the current room state to the new connection
-    const snapshot = await fetcher.fetchSnapshot(client.incidentId);
+    const snapshot = await fetcher.fetchSnapshot(incidentId);
     ws.send(JSON.stringify({ type: "room_snapshot", ...snapshot }));
 
     ws.on("message", (data) => {
@@ -73,6 +109,7 @@ export function createServer(
       }
 
       if (msg.type === "ping") {
+        rooms.touch(client);
         ws.send(JSON.stringify({ type: "pong" }));
         return;
       }
@@ -87,7 +124,7 @@ export function createServer(
 
       if (msg.type === "block_event") {
         rooms.broadcast(
-          client.incidentId,
+          incidentId,
           {
             type: "block_event",
             userId: client.userId,
@@ -102,7 +139,7 @@ export function createServer(
       if (msg.type === "cursor_move") {
         // Cursor presence is editor-only; viewers don't need to see it.
         rooms.broadcastToEditors(
-          client.incidentId,
+          incidentId,
           {
             type: "cursor_moved",
             userId: client.userId,
@@ -116,7 +153,7 @@ export function createServer(
 
     ws.on("close", () => {
       rooms.leave(client);
-      rooms.broadcast(client.incidentId, {
+      rooms.broadcast(incidentId, {
         type: "user_left",
         userId: client.userId,
       });

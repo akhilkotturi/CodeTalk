@@ -47,6 +47,20 @@ services:
       postgres:
         condition: service_healthy
 
+  project-service:
+    build:
+      context: ..
+      dockerfile: services/project-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      PORT: "4004"
+    ports:
+      - "4004:4004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   ws-gateway:
     build:
       context: ..
@@ -55,6 +69,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
       SERVICE_TOKEN: ${SERVICE_TOKEN:-internal-dev-token}
       INCIDENT_SERVICE_URL: http://incident-service:4000
+      REDIS_URL: redis://redis:6379
       PORT: "4002"
     ports:
       - "4002:4002"
@@ -79,6 +94,7 @@ services:
     depends_on:
       - incident-service
       - snippet-service
+      - project-service
       - ws-gateway
       - notification-service
 
@@ -110,14 +126,19 @@ services:
         condition: service_healthy
 
   # ── Phase 8: Redis (presence state, active-incident caching) ─────────────
-  # redis:
-  #   image: redis:7-alpine
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redisdata:/data
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
   rabbitmqdata:
-  # redisdata:    # Phase 8
+  redisdata:

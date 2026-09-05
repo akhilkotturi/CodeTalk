@@ -5,8 +5,8 @@ breaks mid-build, spin up a shared room: a live canvas for the incident,
 structured logs/hypotheses/fix-attempts, presence, and a recorded postmortem
 you can look back on (or show off) afterward.
 
-> Status: Phases 1–7 complete and locally verified. Phase 8
-> (Redis presence state + active-incident caching) is next. See DEVLOG.md
+> Status: Phases 1–8 complete and locally verified. Phase 8 adds Redis-backed
+> presence state and active-incident caching. See DEVLOG.md
 > for the running story of what got built, what broke, and what I learned.
 
 ## Why this exists
@@ -30,7 +30,7 @@ CodeTalk/
   gateway/
     kong/                  # DB-less declarative API gateway
   infra/
-    docker-compose.yml     # Postgres + RabbitMQ + services + Kong; Redis stub for later phases
+    docker-compose.yml     # Postgres + Redis + RabbitMQ + services + Kong
   mcp/
     session-summarizer/      # (planned) MCP server wrapping incident-service
   shared/
@@ -56,11 +56,23 @@ CodeTalk/
 5. ws-gateway: real-time canvas sync — complete
 6. Present mode: read-only viewer access via join code — complete
 7. notification-service + message queue for join/leave events — complete
-8. Redis for presence state and caching active incidents — next
+8. Redis for presence state and caching active incidents — complete
 9. Load balancing across multiple service and WebSocket gateway instances
 10. Observability (OpenTelemetry, Prometheus/Grafana) across REST + WS paths
 11. MCP server wrapping incident-service for LLM-generated incident summaries
 12. Frontend (apps/web): landing, live incident canvas, present mode, postmortem playback — complete
+13. Project command center foundation: projects, memberships, join codes, project overview — complete
+14. Task board: backlog/doing/blocked/done tasks with project-scoped realtime updates — complete
+15. Collaborative whiteboard: Excalidraw elements over Yjs/Hocuspocus — next
+16. Collaborative planning document: Tiptap over Yjs/Hocuspocus
+17. Read-only GitHub App integration and normalized project activity
+18. Live presentation board with curated project pins
+19. Project-linked debug sessions and incident activity timeline
+
+The project command center roadmap is intentionally additive. Existing incident
+routes remain operational while project surfaces are introduced one phase at a
+time. The first foundation slice lives in `services/project-service` and the
+project overview is available at `/projects/:id/overview`.
 
 ## Local development
 

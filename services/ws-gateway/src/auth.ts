@@ -1,6 +1,7 @@
 import { IncomingMessage } from "http";
 import jwt from "jsonwebtoken";
 import { randomUUID } from "crypto";
+import { IncidentCache, createRedisIncidentCache } from "./redis";
 
 export interface IncidentFetcher {
   fetchByCode(
@@ -14,7 +15,8 @@ export interface IncidentFetcher {
 
 export type AuthResult =
   | { role: "editor"; userId: string; incidentId: string }
-  | { role: "viewer"; userId: string; incidentId: string };
+  | { role: "viewer"; userId: string; incidentId: string }
+  | { role: "project_editor"; userId: string; projectId: string }
 
 /**
  * Parse the WebSocket upgrade request and authenticate the connection.
@@ -31,6 +33,7 @@ export async function parseUpgradeAuth(
   const url = new URL(req.url ?? "/", "http://localhost");
   const token = url.searchParams.get("token");
   const incidentId = url.searchParams.get("incidentId");
+    const projectId = url.searchParams.get("projectId");
   const joinCode = url.searchParams.get("joinCode");
 
   // ── Editor path ─────────────────────────────────────────────────────────
@@ -41,6 +44,18 @@ export async function parseUpgradeAuth(
       const payload = jwt.verify(token, secret) as jwt.JwtPayload;
       if (!payload.sub) return null;
       return { role: "editor", userId: payload.sub, incidentId };
+    } catch {
+      return null;
+    }
+  }
+
+  if (token && projectId) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return null;
+    try {
+      const payload = jwt.verify(token, secret) as jwt.JwtPayload;
+      if (!payload.sub) return null;
+      return { role: "project_editor", userId: payload.sub, projectId };
     } catch {
       return null;
     }
@@ -57,14 +72,34 @@ export async function parseUpgradeAuth(
 }
 
 /** Production fetcher — calls incident-service over HTTP. */
-export function createDefaultFetcher(): IncidentFetcher {
+class MemoryIncidentCache implements IncidentCache {
+  private values = new Map<string, { id: string; title: string } | null>();
+
+  async get(joinCode: string): Promise<{ id: string; title: string } | null | undefined> {
+    return this.values.get(joinCode);
+  }
+
+  async set(joinCode: string, incident: { id: string; title: string } | null): Promise<void> {
+    this.values.set(joinCode, incident);
+  }
+}
+
+export function createDefaultFetcher(options: { cache?: IncidentCache } = {}): IncidentFetcher {
+  const incidentCache = options.cache ?? createRedisIncidentCache() ?? new MemoryIncidentCache();
+
   return {
     async fetchByCode(joinCode) {
+      const cached = await incidentCache.get(joinCode);
+      if (cached !== undefined) return cached;
+
       const url = `${process.env.INCIDENT_SERVICE_URL}/incidents/by-code/${joinCode}`;
       try {
         const res = await fetch(url);
-        if (!res.ok) return null;
-        return (await res.json()) as { id: string; title: string };
+        const value = res.ok
+          ? ((await res.json()) as { id: string; title: string })
+          : null;
+        await incidentCache.set(joinCode, value);
+        return value;
       } catch {
         return null;
       }

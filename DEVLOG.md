@@ -70,7 +70,7 @@ exchange after it writes the membership event row to Postgres.
   events for now. Real delivery channels like Slack, email, or web push are
   intentionally deferred until the queue path itself is proven.
 
-**Current phase:** Phase 8 is next: Redis-backed presence state and
+**Next at the time:** Phase 8: Redis-backed presence state and
 active-incident caching.
 
 ## 2026-09-03 — apps/web frontend: full TDD build against the approved plan
@@ -115,6 +115,60 @@ no drift found.
   Left as a known gap: the jest ts-jest tsconfig override should eventually
   just extend the real tsconfig instead of redefining a looser one.
 
-**Next:** Run the `impeccable` design pass against the now-functionally-complete
+**Next at the time:** Run the `impeccable` design pass against the now-functionally-complete
 dev server (concrete palette, type scale, spacing, motion per the design
 spec) — a deliberately separate pass from this functional build.
+
+## 2026-09-03 - Phase 8 Redis presence and active-incident caching
+
+**What:** Enabled Redis in the Compose stack. ws-gateway now stores expiring
+room presence keys, refreshes them on WebSocket heartbeats, and removes them
+when clients leave. Join-code incident lookups use a 30-second Redis cache.
+
+**Why these decisions:**
+- Presence is ephemeral, so Redis TTLs prevent abandoned connections from
+  remaining visible after a process or network failure.
+- PostgreSQL remains the source of truth; cached incident lookups are short
+  lived and fall back to the service when Redis is not configured.
+- Redis failures are logged and do not reject WebSocket connections or turn a
+  successful incident lookup into an application failure.
+
+**Current phase:** Phase 9 is next: load balancing across multiple service and
+WebSocket gateway instances.
+
+## 2026-09-05 - Project command center foundation
+
+**What:** Added the first vertical slice of the new project command center:
+`project-service`, durable users/projects/memberships/invites tables, protected
+project create/join/overview routes, Kong and Compose wiring, project creation
+and join controls on the landing screen, and a project overview shell.
+
+**Compatibility:** The existing incident workflow remains intact. Project
+overview links expose the current incident flow as the debug-session entry point
+while the task board, collaborative whiteboard, planning document, GitHub
+activity, and presentation board are implemented in later phases.
+
+**Verification:** Project creation/join/access-control integration tests pass,
+the frontend test suite passes, and a live create/join request succeeds through
+Kong.
+
+**Next:** Task board with project-scoped task persistence and realtime updates.
+
+## 2026-09-05 - Project task board
+
+**What:** Added project-scoped tasks with `backlog`, `doing`, `blocked`, and
+`done` statuses. `project-service` now owns task CRUD and ordering metadata;
+the web app exposes `/projects/:id/tasks` with the same four-column editorial
+UI as the incident canvas.
+
+**Realtime:** Authenticated project WebSocket channels now broadcast task
+create/update/delete events. REST remains the source of truth; successful UI
+mutations update the local store and publish the corresponding event to other
+connected project boards.
+
+**Verification:** Project/task integration tests pass, all existing WebSocket
+regression tests pass, the frontend suite and build pass, Docker builds pass,
+and live create/move requests succeed through Kong.
+
+**Next:** Collaborative whiteboard using Excalidraw elements synchronized by
+Yjs/Hocuspocus.

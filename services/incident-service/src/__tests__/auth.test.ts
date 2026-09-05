@@ -77,6 +77,16 @@ describe("Auth middleware — protected routes", () => {
     expect(res.status).toBe(401);
   });
 
+  it("returns 401 when a legacy token has a non-UUID subject", async () => {
+    const token = createToken("Akhil Kotturi");
+    const res = await request(app)
+      .post("/incidents")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Legacy session" });
+
+    expect(res.status).toBe(401);
+  });
+
   it("allows the request through with a valid token", async () => {
     const token = createToken(USER_A);
     const res = await request(app)

@@ -29,7 +29,11 @@ describe("RequireAuth", () => {
   });
 
   it("renders children when a session token is present", () => {
-    useSessionStore.setState({ token: "t", userId: "ada", displayName: "Ada" });
+    useSessionStore.setState({
+      token: "t",
+      userId: "00000000-0000-4000-8000-000000000001",
+      displayName: "Ada",
+    });
 
     render(
       <MemoryRouter initialEntries={["/incidents/incident-1"]}>
@@ -48,5 +52,27 @@ describe("RequireAuth", () => {
     );
 
     expect(screen.getByText("Canvas")).toBeInTheDocument();
+  });
+
+  it("redirects to / when a legacy session has a non-UUID userId", () => {
+    useSessionStore.setState({ token: "t", userId: "Akhil Kotturi", displayName: "Akhil Kotturi" });
+
+    render(
+      <MemoryRouter initialEntries={["/incidents/new"]}>
+        <Routes>
+          <Route path="/" element={<div>Landing</div>} />
+          <Route
+            path="/incidents/new"
+            element={
+              <RequireAuth>
+                <div>Create incident</div>
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Landing")).toBeInTheDocument();
   });
 });

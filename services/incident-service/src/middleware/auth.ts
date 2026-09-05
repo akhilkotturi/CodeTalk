@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-
+const UUID_PATTERN = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const secret = () => {
   const s = process.env.JWT_SECRET;
   if (!s) throw new Error("JWT_SECRET is not set");
@@ -18,8 +18,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   const token = header.slice(7);
   try {
     const payload = jwt.verify(token, secret()) as jwt.JwtPayload;
-    if (!payload.sub) {
-      res.status(401).json({ error: "Invalid token: missing sub claim" });
+    if (!payload.sub || !UUID_PATTERN.test(payload.sub)) {
+      res.status(401).json({ error: "Invalid token subject" });
       return;
     }
     req.user = { sub: payload.sub };

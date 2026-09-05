@@ -13,6 +13,7 @@
     "dev:incident-service": "npm run dev -w services/incident-service",
     "dev:notification-service": "npm run dev -w services/notification-service",
     "dev:snippet-service": "npm run dev -w services/snippet-service",
+    "dev:project-service": "npm run dev -w services/project-service",
     "dev:ws-gateway": "npm run dev -w services/ws-gateway",
     "dev:web": "npm run dev -w apps/web",
     "test:web": "npm run test -w apps/web",
