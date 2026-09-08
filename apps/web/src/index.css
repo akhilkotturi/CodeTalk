@@ -205,6 +205,8 @@ button:disabled { cursor: not-allowed; }
 .plan-toolbar .button { width: 100%; justify-content: flex-start; }
 .plan-editor { min-height: calc(100dvh - 124px); padding: clamp(1.5rem, 5vw, 4rem); background: #fffdf7; color: var(--ink); line-height: 1.65; outline: none; }
 .plan-editor > *:first-child { margin-top: 0; }
+.plan-editor .collaboration-cursor__caret { position: relative; border-left: 2px solid; border-right: 2px solid; margin-left: -1px; margin-right: -1px; pointer-events: none; word-break: normal; }
+.plan-editor .collaboration-cursor__label { position: absolute; z-index: 2; top: -1.7em; left: -2px; max-width: min(15rem, 42vw); overflow: hidden; border-radius: 3px 3px 3px 0; padding: .18rem .42rem; color: #fffdf7; font-size: .62rem; font-style: normal; font-weight: 750; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; user-select: none; }
 .plan-editor h1, .plan-editor h2, .plan-editor h3 { line-height: 1.08; letter-spacing: -.025em; }
 .plan-editor a { color: var(--ember-dark); text-underline-offset: .22em; }
 .plan-editor blockquote { margin-left: 0; border-left: 3px solid var(--ember); padding-left: 1rem; color: var(--muted); }
