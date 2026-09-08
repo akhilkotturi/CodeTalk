@@ -20,6 +20,10 @@ const config: Config = {
   moduleNameMapper: {
     "\\.(css|less|scss)$": "identity-obj-proxy",
     "^@CodeTalk/types$": "<rootDir>/../../shared/types/dist/index.js",
+    "^@excalidraw/excalidraw$": "<rootDir>/src/test/mocks/excalidraw.tsx",
+    "^@hocuspocus/provider$": "<rootDir>/src/test/mocks/hocuspocusProvider.ts",
+    "^@tiptap/react$": "<rootDir>/src/test/mocks/tiptapReact.tsx",
+    "^@tiptap/(starter-kit|extension-.+)$": "<rootDir>/src/test/mocks/tiptapExtension.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/src/test/setupTests.ts"],
 };

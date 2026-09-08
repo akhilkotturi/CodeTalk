@@ -30,6 +30,17 @@ services:
           - /projects
         strip_path: false
 
+  - name: collaboration-service
+    url: http://collaboration-service:4005
+    routes:
+      - name: collaboration-routes
+        paths:
+          - /collaboration
+        strip_path: false
+        protocols:
+          - http
+          - https
+
   - name: ws-gateway
     url: http://ws-gateway:4002
     routes:

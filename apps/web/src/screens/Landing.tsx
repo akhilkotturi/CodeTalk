@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/shared/Button";
 import { Input } from "../components/shared/Input";
 import { Toast } from "../components/shared/Toast";
@@ -91,7 +91,11 @@ export function Landing() {
         <a className="wordmark" href="/" aria-label="CodeTalk home">
           CodeTalk<span className="wordmark-dot" aria-hidden="true" />
         </a>
-        <span className="brand-note">Incident rooms for teams in motion</span>
+        <div className="landing-nav">
+          {session.token && isUuid(session.userId) && <Link to="/projects">My projects</Link>}
+          {session.token && isUuid(session.userId) && <Link to="/account">Account</Link>}
+          <span className="brand-note">Project command center for teams in motion</span>
+        </div>
       </header>
 
       <section className="landing-grid">
@@ -102,19 +106,19 @@ export function Landing() {
           </div>
           <h1>Think clearly<br />under pressure.</h1>
           <p className="landing-lede">
-            A shared incident room for logs, hypotheses, fixes, and the root cause—kept in sync
-            while your team gets back to shipping.
+            A shared project space for the plan, tasks, whiteboard, and debug sessions, kept in sync
+            while your team ships.
           </p>
           <div className="landing-proof" aria-label="CodeTalk features">
-            <span>Live canvas</span>
-            <span>Team presence</span>
-            <span>Instant postmortem</span>
+            <span>Planning doc</span>
+            <span>Task board</span>
+            <span>Whiteboard</span>
           </div>
         </div>
 
         <div className="access-panel">
           <div className="panel-heading">
-            <span>Open a room</span>
+            <span>Open a project</span>
             <span className="panel-index">01</span>
           </div>
           <Input

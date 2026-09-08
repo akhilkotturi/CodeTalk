@@ -63,11 +63,12 @@ CodeTalk/
 12. Frontend (apps/web): landing, live incident canvas, present mode, postmortem playback — complete
 13. Project command center foundation: projects, memberships, join codes, project overview — complete
 14. Task board: backlog/doing/blocked/done tasks with project-scoped realtime updates — complete
-15. Collaborative whiteboard: Excalidraw elements over Yjs/Hocuspocus — next
-16. Collaborative planning document: Tiptap over Yjs/Hocuspocus
-17. Read-only GitHub App integration and normalized project activity
-18. Live presentation board with curated project pins
-19. Project-linked debug sessions and incident activity timeline
+15. Collaborative whiteboard: Excalidraw elements over Yjs/Hocuspocus — complete
+16. Collaborative planning document: Tiptap over Yjs/Hocuspocus — complete
+17. Active project and account management — complete
+18. Read-only GitHub App integration and normalized project activity — next
+19. Live presentation board with curated project pins
+20. Project-linked debug sessions and incident activity timeline
 
 The project command center roadmap is intentionally additive. Existing incident
 routes remain operational while project surfaces are introduced one phase at a

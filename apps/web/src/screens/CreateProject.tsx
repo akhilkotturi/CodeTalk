@@ -40,8 +40,8 @@ export function CreateProject() {
       <section className="form-stage">
         <div className="form-intro">
           <span className="step-label">New project</span>
-          <h1>Make room<br />for the work.</h1>
-          <p>Bring the plan, tasks, whiteboard, and debug sessions into one shared command center.</p>
+          <h1>Start the<br />command center.</h1>
+          <p>Bring the planning doc, task board, whiteboard, and debug sessions into one shared project.</p>
         </div>
         <form onSubmit={handleSubmit} className="incident-form">
           <Input label="Project name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Launch weekend" autoFocus />

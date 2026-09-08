@@ -52,6 +52,10 @@ export function createProject(
   return request("/projects", { method: "POST", token, body: input });
 }
 
+export function listProjects(token: string): Promise<Project[]> {
+  return request("/projects", { token });
+}
+
 export function joinProject(token: string, joinCode: string): Promise<Project> {
   return request("/projects/join", { method: "POST", token, body: { joinCode } });
 }

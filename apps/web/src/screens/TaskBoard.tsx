@@ -92,7 +92,11 @@ export function TaskBoard() {
           <h1>{project.name}</h1>
           <p>Turn the next move into something visible.</p>
         </div>
-        <div className="room-actions"><Link className="button button-secondary" to={`/projects/${project.id}/overview`}>Overview</Link></div>
+        <div className="room-actions">
+          <Link className="button button-secondary" to={`/projects/${project.id}/overview`}>Overview</Link>
+          <Link className="button button-secondary" to={`/projects/${project.id}/plan`}>Plan</Link>
+          <Link className="button button-secondary" to={`/projects/${project.id}/whiteboard`}>Whiteboard</Link>
+        </div>
       </header>
       <section className="task-composer">
         <Input label="New task" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Write the next concrete move" />

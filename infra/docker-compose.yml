@@ -61,6 +61,20 @@ services:
       postgres:
         condition: service_healthy
 
+  collaboration-service:
+    build:
+      context: ..
+      dockerfile: services/collaboration-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      PORT: "4005"
+    ports:
+      - "4005:4005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   ws-gateway:
     build:
       context: ..
@@ -95,6 +109,7 @@ services:
       - incident-service
       - snippet-service
       - project-service
+      - collaboration-service
       - ws-gateway
       - notification-service
 

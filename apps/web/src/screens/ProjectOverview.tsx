@@ -37,13 +37,15 @@ export function ProjectOverview() {
           <p>Project surfaces will gather the plan, tasks, shared whiteboard, GitHub activity, and debug sessions here.</p>
         </div>
         <nav className="project-surface-list" aria-label="Project surfaces">
-          <div className="project-surface-row"><span>01</span><strong>Plan</strong><em>Next phase</em></div>
+          <Link className="project-surface-row" to={`/projects/${project.id}/plan`}><span>01</span><strong>Plan</strong><em>Open doc</em></Link>
           <Link className="project-surface-row" to={`/projects/${project.id}/tasks`}><span>02</span><strong>Tasks</strong><em>Open board</em></Link>
-          <div className="project-surface-row"><span>03</span><strong>Whiteboard</strong><em>Next phase</em></div>
-          <div className="project-surface-row"><span>04</span><strong>GitHub</strong><em>Next phase</em></div>
+          <Link className="project-surface-row" to={`/projects/${project.id}/whiteboard`}><span>03</span><strong>Whiteboard</strong><em>Open board</em></Link>
+          <Link className="project-surface-row" to="/incidents/new"><span>04</span><strong>Debug sessions</strong><em>Open room</em></Link>
+          <div className="project-surface-row"><span>05</span><strong>GitHub activity</strong><em>Next phase</em></div>
+          <div className="project-surface-row"><span>06</span><strong>Presentation board</strong><em>Next phase</em></div>
         </nav>
       </section>
-      <div className="project-legacy-link"><Link to="/incidents/new">Open a debug session</Link><span>Uses the existing incident workflow</span></div>
+      <div className="project-legacy-link"><span>Project code: {project.joinCode}</span><span>Debug sessions currently use the existing incident workflow.</span></div>
     </main>
   );
 }

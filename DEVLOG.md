@@ -172,3 +172,54 @@ and live create/move requests succeed through Kong.
 
 **Next:** Collaborative whiteboard using Excalidraw elements synchronized by
 Yjs/Hocuspocus.
+
+## 2026-09-05 - Collaborative whiteboard
+
+**What:** Added the project whiteboard route at `/projects/:id/whiteboard` with
+MIT-licensed Excalidraw tooling, including shapes, connectors, freehand drawing,
+text, erasing, zoom/pan, undo, and the built-in export flow. Elements are
+stored in a Yjs map keyed by Excalidraw element ID.
+
+**Collaboration:** Added `collaboration-service` on Node 22 using Hocuspocus.
+It persists binary Yjs updates in the shared Postgres database under
+`collaboration_documents` and validates CodeTalk JWTs before opening a
+document. Kong exposes the WebSocket endpoint at `/collaboration`.
+
+**Verification:** The collaboration service and frontend build pass, all
+frontend tests pass with browser-only dependency shims for Jest, Compose
+configuration validates, the collaboration container starts, and its HTTP
+health endpoint responds successfully.
+
+**Next:** Collaborative planning document using Tiptap over the same Yjs /
+Hocuspocus foundation.
+
+## 2026-09-08 - Collaborative planning document
+
+**What:** Added the project planning route at `/projects/:id/plan` with a
+Tiptap editor for headings, paragraphs, lists, checklists, tables, links, code
+blocks, and quotes. The editor uses the existing Hocuspocus/Yjs collaboration
+service with the document name `project:{id}:plan`, keeping binary Yjs state as
+the canonical stored document.
+
+**Navigation:** Project overview now opens Plan, Tasks, Whiteboard, and the
+current debug-session flow while keeping GitHub activity and presentation board
+visible as upcoming roadmap surfaces.
+
+**Verification:** Focused frontend route tests pass and the web app builds.
+
+**Next:** Read-only GitHub App integration and normalized project activity.
+
+## 2026-09-08 - Active projects and account
+
+**What:** Added `GET /projects` so the project service can return the active
+projects for the authenticated user, including each membership role. The web
+app now has `/projects` for managing active command centers and `/account` for
+viewing the local development identity, active project shortcuts, and signing
+out.
+
+**Navigation:** The landing page links signed-in users to their project list
+and account. Project cards provide direct shortcuts to overview, plan,
+whiteboard, and tasks.
+
+**Verification:** Project-service membership listing tests pass, the full web
+test suite passes, and the root workspace build passes.

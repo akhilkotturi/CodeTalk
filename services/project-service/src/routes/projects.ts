@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { eq, and, asc, sql } from "drizzle-orm";
+import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { db } from "../db";
 import { projectMembers, projects, tasks, users } from "../db/schema";
 
@@ -33,6 +33,30 @@ const TASK_STATUSES = ["backlog", "doing", "blocked", "done"] as const;
 function isTaskStatus(value: unknown): value is (typeof TASK_STATUSES)[number] {
   return typeof value === "string" && TASK_STATUSES.includes(value as (typeof TASK_STATUSES)[number]);
 }
+
+router.get("/", async (req, res) => {
+  try {
+    await ensureUser(req);
+    const userProjects = await db.select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      ownerId: projects.ownerId,
+      joinCode: projects.joinCode,
+      createdAt: projects.createdAt,
+      role: projectMembers.role,
+    })
+      .from(projectMembers)
+      .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+      .where(eq(projectMembers.userId, req.user.sub))
+      .orderBy(desc(projectMembers.joinedAt), desc(projects.createdAt));
+
+    res.status(200).json(userProjects);
+  } catch (error) {
+    console.error("GET /projects error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 router.post("/", async (req, res) => {
   const { name, description } = req.body as { name?: string; description?: string };

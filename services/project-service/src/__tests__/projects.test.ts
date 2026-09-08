@@ -21,6 +21,39 @@ afterAll(async () => {
 });
 
 describe("project foundation", () => {
+  it("lists only projects where the authenticated user is a member", async () => {
+    const ownerToken = token(OWNER_ID, "Ada");
+    const guestToken = token(GUEST_ID, "Grace");
+    const ownerProject = await request(app)
+      .post("/projects")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ name: "Owner project" });
+    const guestProject = await request(app)
+      .post("/projects")
+      .set("Authorization", `Bearer ${guestToken}`)
+      .send({ name: "Guest project" });
+
+    await request(app)
+      .post("/projects/join")
+      .set("Authorization", `Bearer ${guestToken}`)
+      .send({ joinCode: ownerProject.body.joinCode });
+
+    const ownerList = await request(app)
+      .get("/projects")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    const guestList = await request(app)
+      .get("/projects")
+      .set("Authorization", `Bearer ${guestToken}`);
+
+    expect(ownerList.status).toBe(200);
+    expect(ownerList.body.map((project: { name: string }) => project.name)).toEqual(["Owner project"]);
+    expect(guestList.status).toBe(200);
+    expect(guestList.body.map((project: { name: string; role: string }) => [project.name, project.role])).toEqual([
+      ["Owner project", "editor"],
+      ["Guest project", "owner"],
+    ]);
+  });
+
   it("creates a project and owner membership", async () => {
     const res = await request(app)
       .post("/projects")
