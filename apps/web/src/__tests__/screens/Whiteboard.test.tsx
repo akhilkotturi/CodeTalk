@@ -4,6 +4,7 @@ import * as Y from "yjs";
 import { Whiteboard, writeWhiteboardElements } from "../../screens/Whiteboard";
 import { useSessionStore } from "../../lib/store/session";
 import * as apiClient from "../../lib/apiClient";
+import { providerEvents } from "../../test/mocks/hocuspocusProvider";
 
 jest.mock("../../lib/apiClient");
 
@@ -24,6 +25,7 @@ describe("Whiteboard", () => {
       userId: "00000000-0000-4000-8000-000000000001",
       displayName: "Ada",
     });
+    providerEvents.reset();
     jest.clearAllMocks();
   });
 
@@ -42,6 +44,8 @@ describe("Whiteboard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Mock draw stroke" }));
 
     expect(screen.getByTestId("excalidraw-mock")).toBeInTheDocument();
+    expect(providerEvents.attachedDocuments).toContain(`project:${project.id}:whiteboard`);
+    expect(screen.getByRole("link", { name: "Exit whiteboard to project overview" })).toHaveAttribute("href", `/projects/${project.id}/overview`);
     expect(screen.getByRole("link", { name: "Plan" })).toHaveAttribute("href", `/projects/${project.id}/plan`);
   });
 

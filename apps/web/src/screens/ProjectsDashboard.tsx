@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Toast } from "../components/shared/Toast";
-import { listProjects, type Project } from "../lib/apiClient";
+import { deleteProject, listProjects, type Project } from "../lib/apiClient";
 import { useSessionStore } from "../lib/store/session";
 
 export function ProjectsDashboard() {
@@ -10,6 +10,7 @@ export function ProjectsDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     listProjects(token)
@@ -17,6 +18,21 @@ export function ProjectsDashboard() {
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load projects"))
       .finally(() => setLoaded(true));
   }, [token]);
+
+  async function handleDeleteProject(project: Project): Promise<void> {
+    const confirmed = window.confirm(`Delete "${project.name}"? This removes the project for everyone.`);
+    if (!confirmed) return;
+
+    setDeletingProjectId(project.id);
+    try {
+      await deleteProject(token, project.id);
+      setProjects((currentProjects) => currentProjects.filter((currentProject) => currentProject.id !== project.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete project");
+    } finally {
+      setDeletingProjectId(null);
+    }
+  }
 
   return (
     <main className="room-shell project-shell">
@@ -57,6 +73,11 @@ export function ProjectsDashboard() {
                 <Link className="button button-secondary" to={`/projects/${project.id}/plan`}>Plan</Link>
                 <Link className="button button-secondary" to={`/projects/${project.id}/whiteboard`}>Whiteboard</Link>
                 <Link className="button button-secondary" to={`/projects/${project.id}/tasks`}>Tasks</Link>
+                {project.role === "owner" && (
+                  <button className="button button-danger" type="button" disabled={deletingProjectId === project.id} onClick={() => void handleDeleteProject(project)}>
+                    {deletingProjectId === project.id ? "Deleting…" : "Delete project"}
+                  </button>
+                )}
               </nav>
             </article>
           ))}

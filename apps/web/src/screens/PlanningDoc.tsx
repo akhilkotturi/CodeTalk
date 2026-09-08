@@ -46,7 +46,11 @@ export function PlanningDoc() {
       document: doc,
       websocketProvider,
       token,
+      onAuthenticationFailed: ({ reason }) => {
+        setError(`Plan connection failed: ${reason}`);
+      },
     });
+    provider.attach();
     setSession({ documentName, doc, provider, websocketProvider });
 
     getProject(token, id)

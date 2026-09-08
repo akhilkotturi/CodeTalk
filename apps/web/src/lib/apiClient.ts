@@ -64,6 +64,10 @@ export function getProject(token: string, projectId: string): Promise<Project> {
   return request(`/projects/${projectId}`, { token });
 }
 
+export function deleteProject(token: string, projectId: string): Promise<void> {
+  return request(`/projects/${projectId}`, { method: "DELETE", token });
+}
+
 export function listTasks(token: string, projectId: string): Promise<ProjectTask[]> {
   return request(`/projects/${projectId}/tasks`, { token });
 }

@@ -62,7 +62,11 @@ export function Whiteboard() {
           document: doc,
           websocketProvider,
           token,
+          onAuthenticationFailed: ({ reason }) => {
+            setError(`Whiteboard connection failed: ${reason}`);
+          },
         });
+        provider.attach();
       }),
     ]).then(([loadedProject]) => setProject(loadedProject)).catch((err) => {
       setError(err instanceof Error ? err.message : "Could not open the whiteboard");
@@ -106,6 +110,10 @@ export function Whiteboard() {
         </div>
       </header>
       <div className="whiteboard-canvas">
+        <Link className="whiteboard-exit" to={`/projects/${project.id}/overview`} aria-label="Exit whiteboard to project overview">
+          <span>Auto-saving</span>
+          Exit board
+        </Link>
         <Excalidraw
           excalidrawAPI={(api) => {
             excalidrawApiRef.current = api as ExcalidrawApi;

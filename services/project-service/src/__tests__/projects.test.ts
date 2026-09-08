@@ -130,4 +130,38 @@ describe("project foundation", () => {
       .send({ title: "Should fail" });
     expect(viewerTask.status).toBe(403);
   });
+  it("lets only the owner delete a project", async () => {
+    const ownerToken = token(OWNER_ID, "Ada");
+    const guestToken = token(GUEST_ID, "Grace");
+    const owner = await request(app)
+      .post("/projects")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ name: "Delete me" });
+
+    await request(app)
+      .post("/projects/join")
+      .set("Authorization", `Bearer ${guestToken}`)
+      .send({ joinCode: owner.body.joinCode });
+
+    const editorDelete = await request(app)
+      .delete(`/projects/${owner.body.id}`)
+      .set("Authorization", `Bearer ${guestToken}`);
+    expect(editorDelete.status).toBe(403);
+
+    const ownerDelete = await request(app)
+      .delete(`/projects/${owner.body.id}`)
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(ownerDelete.status).toBe(204);
+
+    const ownerList = await request(app)
+      .get("/projects")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    const guestList = await request(app)
+      .get("/projects")
+      .set("Authorization", `Bearer ${guestToken}`);
+
+    expect(ownerList.body).toEqual([]);
+    expect(guestList.body).toEqual([]);
+  });
+
 });

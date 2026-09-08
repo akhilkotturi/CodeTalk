@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { db } from "../db";
-import { projectMembers, projects, tasks, users } from "../db/schema";
+import { projectInvites, projectMembers, projects, tasks, users } from "../db/schema";
 
 const router = Router();
 const PG_UNIQUE_VIOLATION = "23505";
@@ -223,6 +223,34 @@ router.patch("/:id/tasks/:taskId", async (req, res) => {
     res.status(200).json(task);
   } catch (error) {
     console.error("PATCH /projects/:id/tasks/:taskId error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const role = await requireMember(req.params.id, req.user.sub);
+    if (role !== "owner") {
+      res.status(403).json({ error: "Owner membership required" });
+      return;
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.delete(tasks).where(eq(tasks.projectId, req.params.id));
+      await tx.delete(projectMembers).where(eq(projectMembers.projectId, req.params.id));
+      await tx.delete(projectInvites).where(eq(projectInvites.projectId, req.params.id));
+      await tx.delete(projects).where(eq(projects.id, req.params.id));
+    });
+
+    try {
+      await db.execute(sql`DELETE FROM collaboration_documents WHERE project_id = ${req.params.id}`);
+    } catch (error: any) {
+      if (error?.code !== "42P01") throw error;
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("DELETE /projects/:id error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

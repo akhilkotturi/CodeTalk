@@ -3,6 +3,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { PlanningDoc } from "../../screens/PlanningDoc";
 import { useSessionStore } from "../../lib/store/session";
 import * as apiClient from "../../lib/apiClient";
+import { providerEvents } from "../../test/mocks/hocuspocusProvider";
 
 jest.mock("../../lib/apiClient");
 
@@ -23,6 +24,7 @@ describe("PlanningDoc", () => {
       userId: "00000000-0000-4000-8000-000000000001",
       displayName: "Ada",
     });
+    providerEvents.reset();
     jest.clearAllMocks();
   });
 
@@ -44,5 +46,6 @@ describe("PlanningDoc", () => {
       "data-document-name",
       `project:${project.id}:plan`
     );
+    expect(providerEvents.attachedDocuments).toContain(`project:${project.id}:plan`);
   });
 });
