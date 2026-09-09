@@ -1,110 +1,166 @@
 # CodeTalk
 
-Real-time incident war room for hackathon and project teams. When something
-breaks mid-build, spin up a shared room: a live canvas for the incident,
-structured logs/hypotheses/fix-attempts, presence, and a recorded postmortem
-you can look back on (or show off) afterward.
+CodeTalk is a local-first project command center for teams working through a build together. It combines project planning, a task board, collaborative planning docs, a shared whiteboard, GitHub activity, presentation notes, and incident-room tools in one workspace.
 
-> Status: Phases 1–8 complete and locally verified. Phase 8 adds Redis-backed
-> presence state and active-incident caching. See DEVLOG.md
-> for the running story of what got built, what broke, and what I learned.
+The app is a TypeScript monorepo with a React/Vite web app, several Express services, Postgres persistence, Redis-backed realtime state, RabbitMQ events, WebSocket collaboration, and Kong as the local API gateway.
 
-## Why this exists
+## What You Can Do Locally
 
-I'm learning backend infrastructure (API gateways, service-to-service comms,
-JWT auth, load balancing, real-time systems, observability, MCP) by building
-a real multi-service system instead of isolated tutorials. Every infra piece
-below maps to an actual feature, not a checkbox.
+- Create and manage projects, members, join codes, and account access.
+- Use a project plan, task board, collaborative whiteboard, and planning document.
+- Connect public GitHub repositories and sync recent activity into a project.
+- Build a project presentation board from task progress, GitHub activity, and saved talking points.
+- Open incident rooms with structured logs, snippets, presence, canvas sync, and present mode.
 
-## Architecture
+## Prerequisites
 
-```
-CodeTalk/
-  apps/
-    web/                   # React + Vite frontend: landing, live canvas, present mode, postmortem
-  services/
-    incident-service/     # incidents, membership, structured blocks (Postgres)
-    snippet-service/       # incident-linked code snippets (Postgres)
-    notification-service/ # RabbitMQ membership-event consumer
-    ws-gateway/            # WebSocket canvas/presence sync
-  gateway/
-    kong/                  # DB-less declarative API gateway
-  infra/
-    docker-compose.yml     # Postgres + Redis + RabbitMQ + services + Kong
-  mcp/
-    session-summarizer/      # (planned) MCP server wrapping incident-service
-  shared/
-    types/                    # shared TS types across services
-```
+- Node.js 20 or newer
+- npm
+- Docker Desktop or another Docker Compose-compatible runtime
 
-## Core features (target)
+## Quick Start
 
-- Shared incident canvas per room, structured into blocks: log, hypothesis,
-  fix-attempt, root-cause, and a freeform custom block
-- Presence — who's in the room, live cursors
-- Present mode — join a room read-only via a short code (TV/big-screen view)
-- Session recording/playback for postmortems
-- Manual links to external context (GitHub PR, CI run) — deeper GitHub/CI
-  integration (OAuth, webhooks) explicitly deferred to a later phase
-
-## Build order
-
-1. incident-service alone: incidents, membership, Postgres schema, plain REST, no auth
-2. Auth: JWT issuing, protect incident-service routes
-3. snippet/block content tied to an incident
-4. Kong in front of services as a router; services retain JWT verification — complete
-5. ws-gateway: real-time canvas sync — complete
-6. Present mode: read-only viewer access via join code — complete
-7. notification-service + message queue for join/leave events — complete
-8. Redis for presence state and caching active incidents — complete
-9. Load balancing across multiple service and WebSocket gateway instances
-10. Observability (OpenTelemetry, Prometheus/Grafana) across REST + WS paths
-11. MCP server wrapping incident-service for LLM-generated incident summaries
-12. Frontend (apps/web): landing, live incident canvas, present mode, postmortem playback — complete
-13. Project command center foundation: projects, memberships, join codes, project overview — complete
-14. Task board: backlog/doing/blocked/done tasks with project-scoped realtime updates — complete
-15. Collaborative whiteboard: Excalidraw elements over Yjs/Hocuspocus — complete
-16. Collaborative planning document: Tiptap over Yjs/Hocuspocus — complete
-17. Active project and account management — complete
-18. Read-only GitHub App integration and normalized project activity — next
-19. Live presentation board with curated project pins
-20. Project-linked debug sessions and incident activity timeline
-
-The project command center roadmap is intentionally additive. Existing incident
-routes remain operational while project surfaces are introduced one phase at a
-time. The first foundation slice lives in `services/project-service` and the
-project overview is available at `/projects/:id/overview`.
-
-## Local development
+From the repository root:
 
 ```bash
-# 1. Start Postgres
+npm install
+cp .env.example .env
 docker compose -f infra/docker-compose.yml up -d
-
-# 2. Copy env (first time only)
-cp services/incident-service/.env.example services/incident-service/.env
-
-# 3. Run migrations for both database-backed services
 npm run db:migrate -w services/incident-service
 npm run db:migrate -w services/snippet-service
-
-# 4. Start incident-service
-npm run dev:incident-service
-
-# Optional: start notification-service when RabbitMQ is running
-npm run dev:notification-service
-```
-
-See `infra/README.md` for more details (psql access, volume management, upcoming services).
-
-### Frontend
-
-```bash
+npm run db:migrate -w services/project-service
 npm run dev:web
 ```
 
-Requires the backend stack running (`docker compose -f infra/docker-compose.yml up -d`, plus incident-service/ws-gateway) for anything past the landing screen — the canvas connects to Kong on `:8000`.
+Open the web app at:
 
-## What I learned
+```text
+http://localhost:5173
+```
 
-<!-- TODO: pull highlights from DEVLOG.md once there's history to pull from -->
+The Vite dev server proxies `/api` requests to Kong at `http://localhost:8000`, so you normally do not need to set a frontend API URL for local development.
+
+## Local Services
+
+The Docker Compose stack starts the backend services and dependencies:
+
+| Service | Local URL | Purpose |
+| --- | --- | --- |
+| Web app | `http://localhost:5173` | React/Vite frontend, started with `npm run dev:web` |
+| Kong gateway | `http://localhost:8000` | Main API and WebSocket gateway for the web app |
+| Kong admin | `http://localhost:8001` | Local Kong admin API |
+| incident-service | `http://localhost:4000` | Auth, incidents, memberships, structured incident blocks |
+| snippet-service | `http://localhost:4001` | Incident-linked code snippets |
+| ws-gateway | `ws://localhost:4002` | Live incident canvas and presence transport |
+| notification-service | `http://localhost:4003` | RabbitMQ membership-event consumer |
+| project-service | `http://localhost:4004` | Projects, tasks, planning docs, whiteboards, GitHub activity |
+| collaboration-service | `http://localhost:4005` | Collaborative document and whiteboard sync |
+| Postgres | `localhost:5432` | Shared local database |
+| RabbitMQ UI | `http://localhost:15672` | Queue inspection |
+| Redis | `localhost:6379` | Presence and active-session state |
+
+## Environment
+
+For normal local development, the defaults in `infra/docker-compose.yml` are enough after copying `.env.example` to `.env`.
+
+These values are the ones you are most likely to edit:
+
+```dotenv
+JWT_SECRET=replace-with-a-long-random-secret
+SERVICE_TOKEN=replace-with-an-internal-service-token
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GITHUB_REDIRECT_URI=http://localhost:8000/auth/github/callback
+FRONTEND_URL=http://localhost:5173
+GITHUB_TOKEN=
+ALLOW_DEV_AUTH=false
+```
+
+GitHub OAuth is only needed for GitHub sign-in. `GITHUB_TOKEN` is optional and only raises GitHub API rate limits when syncing public repository activity.
+
+If Vite chooses a different port, such as `5174`, the backend allows local Vite origins on ports `5173` through `5179`.
+
+## Useful Commands
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start or restart the backend stack:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d
+```
+
+Stop the backend stack while keeping database data:
+
+```bash
+docker compose -f infra/docker-compose.yml down
+```
+
+Wipe local Docker data and start fresh:
+
+```bash
+docker compose -f infra/docker-compose.yml down -v
+```
+
+Run all builds:
+
+```bash
+npm run build
+```
+
+Run frontend tests:
+
+```bash
+npm test -w apps/web -- --runInBand
+```
+
+Run project-service tests against a safe test database:
+
+```bash
+DATABASE_URL=postgres://war_room:war_room@localhost:5432/codetalk_test \
+JWT_SECRET=dev-jwt-secret \
+npm test -w services/project-service -- --runInBand
+```
+
+Run all service migrations:
+
+```bash
+npm run db:migrate -w services/incident-service
+npm run db:migrate -w services/snippet-service
+npm run db:migrate -w services/project-service
+```
+
+## Troubleshooting
+
+If the browser shows `ERR_CONNECTION_REFUSED` for `localhost:8000`, start the backend stack:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d
+```
+
+If the web app receives HTML instead of JSON, check that the frontend is using `/api` locally or that `VITE_API_BASE_URL` points to the Kong gateway.
+
+If local projects disappear after tests, make sure project-service tests are pointed at a test database whose URL contains `test`. The test suite intentionally refuses to truncate a normal development database unless `ALLOW_TEST_DB_TRUNCATE=true` is set.
+
+If GitHub activity sync returns nothing, confirm the repository URL is public and, if you are rate limited, set `GITHUB_TOKEN` in `.env` before restarting `project-service`.
+
+## Repository Layout
+
+```text
+apps/web/                      React + Vite frontend
+services/incident-service/     Auth, incidents, membership, incident blocks
+services/snippet-service/      Code snippets attached to incidents
+services/project-service/      Projects, tasks, plans, whiteboards, GitHub activity
+services/collaboration-service/ Collaborative docs and whiteboards
+services/ws-gateway/           WebSocket incident canvas and presence
+services/notification-service/ RabbitMQ consumer
+gateway/kong/                  DB-less Kong gateway config
+infra/docker-compose.yml       Local dependencies and backend services
+shared/types/                  Shared TypeScript contracts
+```
+
+See `infra/README.md` for lower-level Docker, Postgres, and queue notes.

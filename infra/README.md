@@ -2,12 +2,15 @@
 
 Local development infrastructure via Docker Compose.
 
-## Current stack - Phases 1-7
+## Current Stack
 
-The Compose stack runs Postgres, incident-service, snippet-service,
-ws-gateway, RabbitMQ, notification-service, and Kong. Kong exposes HTTP and
-WebSocket traffic on port 8000; its admin API is available on port 8001.
-RabbitMQ exposes AMQP on port 5672 and its management UI on port 15672.
+The Compose stack runs Postgres, Redis, RabbitMQ, Kong, and the backend services
+used by the web app: incident-service, snippet-service, project-service,
+collaboration-service, ws-gateway, and notification-service.
+
+Kong exposes HTTP and WebSocket traffic on port 8000. Its admin API is available
+on port 8001. RabbitMQ exposes AMQP on port 5672 and its management UI on port
+15672.
 
 Start:
 ```bash
@@ -47,6 +50,7 @@ Then, from the repo root after Postgres is healthy:
 ```bash
 npm run db:migrate -w services/incident-service
 npm run db:migrate -w services/snippet-service
+npm run db:migrate -w services/project-service
 ```
 
 ## Verification
@@ -54,21 +58,12 @@ npm run db:migrate -w services/snippet-service
 With the full stack running and migrations applied:
 
 ```bash
-npm test -w services/incident-service -w services/snippet-service -w services/ws-gateway
+npm test -w services/incident-service -w services/snippet-service -w services/project-service -w services/ws-gateway
 npm test -w services/notification-service
 npm run test:e2e
 ```
 
 The e2e suite requires Kong to be running and fails if the stack is unavailable.
-
-## Coming phases
-
-| Phase | Service | Status |
-|-------|---------|--------|
-| 7 | RabbitMQ + notification-service | complete; membership events are published and consumed |
-| 8 | Redis | Redis stub is commented out |
-
-Implement and enable the relevant service block when that phase begins.
 
 ## Auth and host configuration
 
