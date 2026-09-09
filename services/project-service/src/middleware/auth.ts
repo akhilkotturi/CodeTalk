@@ -16,7 +16,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
       res.status(401).json({ error: "Invalid token subject" });
       return;
     }
-    req.user = { sub: payload.sub, displayName: typeof payload.displayName === "string" ? payload.displayName : undefined };
+    req.user = { sub: payload.sub, displayName: typeof payload.displayName === "string" ? payload.displayName : undefined, githubLogin: typeof payload.githubLogin === "string" ? payload.githubLogin : undefined };
     next();
   } catch {
     res.status(401).json({ error: "Invalid or expired token" });

@@ -8,7 +8,15 @@ const TEST_SECRET = process.env.JWT_SECRET ?? "test-secret-for-local-dev";
  * Truncate all tables in dependency order (children first) and reset
  * sequences. Call in beforeEach to keep tests isolated.
  */
+function assertSafeTestDatabase(): void {
+  const databaseUrl = process.env.DATABASE_URL ?? "";
+  if (!databaseUrl.includes("test") && process.env.ALLOW_TEST_DB_TRUNCATE !== "true") {
+    throw new Error("Refusing to truncate incident tables outside a test database. Set ALLOW_TEST_DB_TRUNCATE=true only for isolated test runs.");
+  }
+}
+
 export async function truncateAll(): Promise<void> {
+  assertSafeTestDatabase();
   await db.execute(sql`
     TRUNCATE TABLE
       incident_links,

@@ -41,8 +41,8 @@ export function ProjectOverview() {
           <Link className="project-surface-row" to={`/projects/${project.id}/tasks`}><span>02</span><strong>Tasks</strong><em>Open board</em></Link>
           <Link className="project-surface-row" to={`/projects/${project.id}/whiteboard`}><span>03</span><strong>Whiteboard</strong><em>Open board</em></Link>
           <Link className="project-surface-row" to="/incidents/new"><span>04</span><strong>Debug sessions</strong><em>Open room</em></Link>
-          <div className="project-surface-row"><span>05</span><strong>GitHub activity</strong><em>Next phase</em></div>
-          <div className="project-surface-row"><span>06</span><strong>Presentation board</strong><em>Next phase</em></div>
+          <Link className="project-surface-row" to={`/projects/${project.id}/activity`}><span>05</span><strong>GitHub activity</strong><em>Open feed</em></Link>
+          <Link className="project-surface-row" to={`/projects/${project.id}/presentation`}><span>06</span><strong>Presentation board</strong><em>Open briefing</em></Link>
         </nav>
       </section>
       <div className="project-legacy-link"><span>Project code: {project.joinCode}</span><span>Debug sessions currently use the existing incident workflow.</span></div>

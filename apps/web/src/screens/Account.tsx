@@ -10,6 +10,7 @@ export function Account() {
   const token = useSessionStore((state) => state.token)!;
   const userId = useSessionStore((state) => state.userId)!;
   const displayName = useSessionStore((state) => state.displayName) ?? "Guest";
+  const githubLogin = useSessionStore((state) => state.githubLogin);
   const clearSession = useSessionStore((state) => state.clearSession);
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,8 @@ export function Account() {
           <dl className="account-details">
             <div><dt>Name</dt><dd>{displayName}</dd></div>
             <div><dt>User ID</dt><dd>{userId}</dd></div>
-            <div><dt>Auth</dt><dd>Local development token</dd></div>
+            {githubLogin && <div><dt>GitHub</dt><dd>@{githubLogin}</dd></div>}
+            <div><dt>Auth</dt><dd>{githubLogin ? "GitHub" : "Local development token"}</dd></div>
           </dl>
         </div>
         <div className="account-panel">

@@ -17,6 +17,37 @@ export interface ProjectTask {
   updatedAt: string;
 }
 
+export interface ProjectRepository {
+  id: string;
+  projectId: string;
+  owner: string;
+  name: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface ProjectActivityItem {
+  id: string;
+  projectId: string;
+  source: string;
+  externalId: string | null;
+  title: string;
+  url: string | null;
+  actor: string | null;
+  occurredAt: string;
+  createdAt: string;
+}
+
+export interface PresentationPin {
+  id: string;
+  projectId: string;
+  sourceType: "task" | "activity" | "note";
+  sourceId: string;
+  note: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
 export interface Incident {
   id: string;
   title: string;

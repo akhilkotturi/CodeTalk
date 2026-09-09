@@ -1,4 +1,5 @@
-import type { Incident, IncidentBlock, IncidentMember, BlockType, ProjectTask } from "@CodeTalk/types";
+import type { Incident, IncidentBlock, IncidentMember, BlockType, PresentationPin, ProjectActivityItem, ProjectRepository, ProjectTask } from "@CodeTalk/types";
+import { API_BASE_URL } from "./config";
 
 export interface Project {
   id: string;
@@ -10,7 +11,6 @@ export interface Project {
   role: "owner" | "editor" | "viewer";
 }
 
-const API_BASE_URL = "http://localhost:8000";
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -32,16 +32,26 @@ async function request<T>(
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
 
+  if (res.status === 204) return undefined as T;
+
+  const contentType = res.headers?.get("content-type") ?? "application/json";
+  if (!contentType.includes("application/json")) {
+    await res.text().catch(() => "");
+    throw new ApiError(`Expected JSON from API but received ${contentType || "an unknown content type"}`, res.status);
+  }
+
+  const payload = await res.json();
+
   if (!res.ok) {
-    const payload = await res.json().catch(() => ({ error: res.statusText }));
     throw new ApiError(payload.error ?? "Request failed", res.status);
   }
 
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  return payload as T;
 }
 
-export function issueToken(displayName: string): Promise<{ token: string; userId?: string }> {
+export const GITHUB_SIGN_IN_URL = `${API_BASE_URL}/auth/github/start`;
+
+export function issueToken(displayName: string): Promise<{ token: string; userId?: string; displayName?: string; githubLogin?: string }> {
   return request("/auth/token", { method: "POST", body: { userId: displayName } });
 }
 
@@ -82,6 +92,42 @@ export function updateTask(token: string, projectId: string, taskId: string, pat
 
 export function deleteTask(token: string, projectId: string, taskId: string): Promise<void> {
   return request(`/projects/${projectId}/tasks/${taskId}`, { method: "DELETE", token });
+}
+
+export function listGitHubRepositories(token: string, projectId: string): Promise<ProjectRepository[]> {
+  return request(`/projects/${projectId}/github/repositories`, { token });
+}
+
+export function connectGitHubRepository(token: string, projectId: string, url: string): Promise<ProjectRepository> {
+  return request(`/projects/${projectId}/github/repositories`, { method: "POST", token, body: { url } });
+}
+
+export function syncGitHubActivity(token: string, projectId: string): Promise<{ synced: number }> {
+  return request(`/projects/${projectId}/github/sync`, { method: "POST", token });
+}
+
+export function listProjectActivity(token: string, projectId: string): Promise<ProjectActivityItem[]> {
+  return request(`/projects/${projectId}/activity`, { token });
+}
+
+export interface ProjectPresentation {
+  project: Project;
+  taskCounts: Record<"backlog" | "doing" | "blocked" | "done", number>;
+  recentActivity: ProjectActivityItem[];
+  pins: PresentationPin[];
+  generatedAt: string;
+}
+
+export function getProjectPresentation(token: string, projectId: string): Promise<ProjectPresentation> {
+  return request(`/projects/${projectId}/presentation`, { token });
+}
+
+export function createPresentationPin(
+  token: string,
+  projectId: string,
+  input: Pick<PresentationPin, "sourceType" | "sourceId" | "note">
+): Promise<PresentationPin> {
+  return request(`/projects/${projectId}/presentation/pins`, { method: "POST", token, body: input });
 }
 
 export function createIncident(

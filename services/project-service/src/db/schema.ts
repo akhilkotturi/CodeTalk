@@ -66,3 +66,34 @@ export const tasks = pgTable(
     statusCheck: check("tasks_status_check", sql`${table.status} in ('backlog', 'doing', 'blocked', 'done')`),
   })
 );
+
+export const projectRepositories = pgTable("project_repositories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  owner: text("owner").notNull(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const projectActivity = pgTable("project_activity", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  source: text("source").notNull(),
+  externalId: text("external_id"),
+  title: text("title").notNull(),
+  url: text("url"),
+  actor: text("actor"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const presentationPins = pgTable("presentation_pins", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  sourceType: text("source_type").notNull(),
+  sourceId: text("source_id").notNull(),
+  note: text("note"),
+  createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

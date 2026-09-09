@@ -18,8 +18,9 @@ import { Button } from "../components/shared/Button";
 import { Toast } from "../components/shared/Toast";
 import { getProject, type Project } from "../lib/apiClient";
 import { useSessionStore } from "../lib/store/session";
+import { WS_BASE_URL } from "../lib/config";
 
-const COLLABORATION_URL = "ws://localhost:8000/collaboration";
+const COLLABORATION_URL = `${WS_BASE_URL}/collaboration`;
 
 interface CollaborationSession {
   documentName: string;

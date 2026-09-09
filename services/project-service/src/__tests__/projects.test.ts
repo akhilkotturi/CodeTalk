@@ -12,8 +12,20 @@ function token(userId: string, displayName: string): string {
   return jwt.sign({ sub: userId, displayName }, secret, { expiresIn: "1h" });
 }
 
+function assertSafeTestDatabase(): void {
+  const databaseUrl = process.env.DATABASE_URL ?? "";
+  if (!databaseUrl.includes("test") && process.env.ALLOW_TEST_DB_TRUNCATE !== "true") {
+    throw new Error("Refusing to truncate project tables outside a test database. Set ALLOW_TEST_DB_TRUNCATE=true only for isolated test runs.");
+  }
+}
+
 beforeEach(async () => {
-  await pool.query("TRUNCATE project_members, project_invites, projects, users CASCADE");
+  assertSafeTestDatabase();
+  await pool.query("TRUNCATE presentation_pins, project_activity, project_repositories, tasks, project_members, project_invites, projects, users CASCADE");
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 afterAll(async () => {
@@ -162,6 +174,79 @@ describe("project foundation", () => {
 
     expect(ownerList.body).toEqual([]);
     expect(guestList.body).toEqual([]);
+  });
+
+  it("connects a GitHub repository and syncs recent activity into the project", async () => {
+    const ownerToken = token(OWNER_ID, "Ada");
+    const owner = await request(app)
+      .post("/projects")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ name: "GitHub project" });
+
+    const connected = await request(app)
+      .post(`/projects/${owner.body.id}/github/repositories`)
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ url: "https://github.com/openai/codetalk" });
+
+    expect(connected.status).toBe(201);
+    expect(connected.body).toMatchObject({ owner: "openai", name: "codetalk" });
+
+    jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: true,
+      json: async () => ([
+        { id: "evt-1", type: "PushEvent", actor: { login: "ada" }, repo: { name: "openai/codetalk" }, created_at: "2026-09-09T12:00:00Z", payload: { commits: [{ message: "Ship board" }] } },
+        { id: "evt-2", type: "PullRequestEvent", actor: { login: "grace" }, repo: { name: "openai/codetalk" }, created_at: "2026-09-09T11:00:00Z", payload: { action: "opened", pull_request: { title: "Add auth" } } },
+      ]),
+    } as Response);
+
+    const synced = await request(app)
+      .post(`/projects/${owner.body.id}/github/sync`)
+      .set("Authorization", `Bearer ${ownerToken}`);
+
+    expect(synced.status).toBe(200);
+    expect(synced.body.synced).toBe(2);
+
+    const activity = await request(app)
+      .get(`/projects/${owner.body.id}/activity`)
+      .set("Authorization", `Bearer ${ownerToken}`);
+
+    expect(activity.status).toBe(200);
+    expect(activity.body.map((item: { title: string }) => item.title)).toEqual(["ada pushed Ship board", "grace opened PR Add auth"]);
+  });
+
+  it("builds a presentation briefing from tasks, GitHub activity, and curated pins", async () => {
+    const ownerToken = token(OWNER_ID, "Ada");
+    const owner = await request(app)
+      .post("/projects")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ name: "Demo day", description: "Make the room legible" });
+
+    const task = await request(app)
+      .post(`/projects/${owner.body.id}/tasks`)
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ title: "Stabilize whiteboard", status: "done", githubUrl: "https://github.com/openai/codetalk/pull/7" });
+
+    await pool.query(
+      "INSERT INTO project_activity (project_id, source, external_id, title, url, actor, occurred_at) VALUES ($1, 'github', 'evt-pin', 'ada merged PR Stabilize whiteboard', 'https://github.com/openai/codetalk/pull/7', 'ada', now())",
+      [owner.body.id]
+    );
+
+    const pin = await request(app)
+      .post(`/projects/${owner.body.id}/presentation/pins`)
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ sourceType: "task", sourceId: task.body.id, note: "Show this as the proof point" });
+
+    expect(pin.status).toBe(201);
+
+    const board = await request(app)
+      .get(`/projects/${owner.body.id}/presentation`)
+      .set("Authorization", `Bearer ${ownerToken}`);
+
+    expect(board.status).toBe(200);
+    expect(board.body.project.name).toBe("Demo day");
+    expect(board.body.taskCounts.done).toBe(1);
+    expect(board.body.recentActivity[0].title).toBe("ada merged PR Stabilize whiteboard");
+    expect(board.body.pins[0]).toMatchObject({ sourceType: "task", sourceId: task.body.id, note: "Show this as the proof point" });
   });
 
 });

@@ -12,11 +12,15 @@ import { Whiteboard } from "./screens/Whiteboard";
 import { PlanningDoc } from "./screens/PlanningDoc";
 import { ProjectsDashboard } from "./screens/ProjectsDashboard";
 import { Account } from "./screens/Account";
+import { AuthCallback } from "./screens/AuthCallback";
+import { GitHubActivity } from "./screens/GitHubActivity";
+import { PresentationBoard } from "./screens/PresentationBoard";
 
 export function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/projects" element={<RequireAuth><ProjectsDashboard /></RequireAuth>} />
       <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
       <Route path="/projects/new" element={<RequireAuth><CreateProject /></RequireAuth>} />
@@ -24,6 +28,8 @@ export function App() {
       <Route path="/projects/:id/plan" element={<RequireAuth><PlanningDoc /></RequireAuth>} />
       <Route path="/projects/:id/tasks" element={<RequireAuth><TaskBoard /></RequireAuth>} />
       <Route path="/projects/:id/whiteboard" element={<RequireAuth><Whiteboard /></RequireAuth>} />
+      <Route path="/projects/:id/activity" element={<RequireAuth><GitHubActivity /></RequireAuth>} />
+      <Route path="/projects/:id/presentation" element={<RequireAuth><PresentationBoard /></RequireAuth>} />
       <Route
         path="/incidents/new"
         element={

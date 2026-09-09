@@ -69,3 +69,17 @@ The e2e suite requires Kong to be running and fails if the stack is unavailable.
 | 8 | Redis | Redis stub is commented out |
 
 Implement and enable the relevant service block when that phase begins.
+
+## Auth and host configuration
+
+GitHub sign-in is configured through environment variables. Copy `.env.example` from the repository root and set these values for your environment before starting the stack:
+
+- `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`: from your GitHub OAuth App.
+- `GITHUB_REDIRECT_URI`: the exact callback URL registered in GitHub, ending in `/auth/github/callback`.
+- `GITHUB_TOKEN` (optional): raises GitHub API limits while syncing public repository activity.
+- `FRONTEND_URL`: the web app origin that receives `/auth/callback`.
+- `VITE_API_BASE_URL`: the API/proxy base URL used by the web app.
+- `VITE_WS_BASE_URL`: optional websocket base URL; if omitted, the web app derives it from `VITE_API_BASE_URL`.
+- `VITE_DEV_API_PROXY_TARGET`: optional local Vite proxy target for `/api`; defaults to the local gateway when running `npm run dev:web`.
+
+`ALLOW_DEV_AUTH` controls the old local anonymous token endpoint. Keep it `false` unless you are intentionally running local-only dev auth.

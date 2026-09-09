@@ -8,8 +8,9 @@ import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/pro
 import { Toast } from "../components/shared/Toast";
 import { getProject, type Project } from "../lib/apiClient";
 import { useSessionStore } from "../lib/store/session";
+import { WS_BASE_URL } from "../lib/config";
 
-const COLLABORATION_URL = "ws://localhost:8000/collaboration";
+const COLLABORATION_URL = `${WS_BASE_URL}/collaboration`;
 
 type ElementMap = Y.Map<ExcalidrawElement>;
 type ExcalidrawElement = Parameters<NonNullable<ComponentProps<typeof Excalidraw>["onChange"]>>[0][number];

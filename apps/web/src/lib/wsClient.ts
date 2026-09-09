@@ -2,8 +2,8 @@ import type { BlockEventAction, ClientMessage, ProjectServerMessage, ServerMessa
 import { useRoomStore } from "./store/room";
 import { useCursorsStore } from "./store/cursors";
 import { useTaskStore } from "./store/tasks";
+import { WS_BASE_URL } from "./config";
 
-const WS_BASE_URL = "ws://localhost:8000";
 const HEARTBEAT_INTERVAL_MS = 15000;
 const CURSOR_THROTTLE_MS = 50;
 const RECONNECT_BASE_DELAY_MS = 500;

@@ -3,14 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/shared/Button";
 import { Input } from "../components/shared/Input";
 import { Toast } from "../components/shared/Toast";
-import { issueToken, getIncidentByJoinCode, addMember, joinProject } from "../lib/apiClient";
+import { GITHUB_SIGN_IN_URL, getIncidentByJoinCode, addMember, joinProject } from "../lib/apiClient";
 import { isUuid } from "../lib/identity";
 import { useSessionStore } from "../lib/store/session";
 
 export function Landing() {
   const navigate = useNavigate();
   const session = useSessionStore();
-  const [displayName, setDisplayName] = useState(session.displayName ?? "");
   const [joinCode, setJoinCode] = useState("");
   const [projectCode, setProjectCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,12 +19,7 @@ export function Landing() {
     if (session.token && isUuid(session.userId)) {
       return { token: session.token, userId: session.userId };
     }
-    const trimmed = displayName.trim();
-    if (!trimmed) throw new Error("Enter your name first");
-    const { token, userId } = await issueToken(trimmed);
-    const identity = userId ?? trimmed;
-    session.setSession({ token, userId: identity, displayName: trimmed });
-    return { token, userId: identity };
+    throw new Error("Sign in with GitHub first");
   }
 
   async function handleCreate() {
@@ -121,15 +115,17 @@ export function Landing() {
             <span>Open a project</span>
             <span className="panel-index">01</span>
           </div>
-          <Input
-            label="Your name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="How your team will see you"
-            autoComplete="name"
-          />
+          {session.token && isUuid(session.userId) ? (
+            <div className="signed-in-card">
+              <span className="step-label">Signed in</span>
+              <strong>{session.displayName}</strong>
+              {session.githubLogin && <span>@{session.githubLogin}</span>}
+            </div>
+          ) : (
+            <a className="button button-primary wide-button" href={GITHUB_SIGN_IN_URL}>Continue with GitHub</a>
+          )}
           {error && <Toast message={error} variant="error" onDismiss={() => setError(null)} />}
-          <Button variant="secondary" onClick={handleCreateProject} disabled={busy} className="wide-button">
+          <Button variant="secondary" onClick={handleCreateProject} disabled={busy || !session.token} className="wide-button">
             Create project
           </Button>
           <div className="join-row">
@@ -146,7 +142,7 @@ export function Landing() {
             </Button>
           </div>
           <div className="panel-divider"><span>or open a debug room</span></div>
-          <Button onClick={handleCreate} disabled={busy} className="wide-button">
+          <Button onClick={handleCreate} disabled={busy || !session.token} className="wide-button">
             {busy ? "Opening room…" : "Create room"}
           </Button>
           <div className="panel-divider"><span>or join the response</span></div>

@@ -13,6 +13,7 @@ dist/
 .claude/
 .agents/
 .codex/
+DESIGN.md
 skills-lock.json
 docs/
 .worktrees/

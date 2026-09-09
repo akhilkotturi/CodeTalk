@@ -72,6 +72,10 @@ button:disabled { cursor: not-allowed; }
 .button-secondary { border-color: var(--rule-dark); background: transparent; color: var(--ink); }
 .button-danger { background: var(--ember); color: #fff8f3; }
 .wide-button { width: 100%; }
+.signed-in-card { display: grid; gap: .3rem; border: 1px solid var(--rule); background: var(--surface); padding: 1rem; }
+.signed-in-card .step-label { margin: 0; }
+.signed-in-card strong { font-size: 1rem; letter-spacing: -.02em; }
+.signed-in-card span:last-child { color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: .78rem; }
 .panel-divider { display: flex; align-items: center; gap: .8rem; color: var(--muted); font-size: .69rem; }
 .panel-divider::before, .panel-divider::after { content: ""; flex: 1; border-top: 1px solid var(--rule); }
 .join-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .65rem; }
@@ -192,6 +196,28 @@ button:disabled { cursor: not-allowed; }
 .task-card { display: flex; flex-direction: column; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--rule); background: transparent; }
 .task-card p { margin: 0; font-size: .82rem; line-height: 1.5; }
 .task-card-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.activity-connect { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 1rem; padding: 1.25rem 2rem; border-bottom: 1px solid var(--ink); background: var(--surface); }
+.activity-workspace, .presentation-grid { display: grid; grid-template-columns: minmax(250px, .72fr) minmax(0, 1.28fr); min-height: calc(100dvh - 268px); }
+.repository-panel, .activity-feed, .presentation-panel { padding: clamp(1.5rem, 4vw, 4rem); }
+.repository-panel, .presentation-panel:first-child { border-right: 1px solid var(--rule); }
+.repository-panel .step-label, .activity-feed .step-label, .presentation-panel .step-label { display: block; margin-bottom: 1.2rem; }
+.repository-panel a { display: block; margin-bottom: .7rem; color: var(--ink); font-family: "IBM Plex Mono", monospace; font-size: .78rem; text-underline-offset: .25em; }
+.repository-panel p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.6; }
+.activity-feed { padding-left: clamp(1.5rem, 6vw, 6rem); }
+.activity-item { display: grid; grid-template-columns: 108px minmax(0, 1fr); gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--rule); }
+.activity-item span { color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: .65rem; }
+.activity-item a, .activity-item strong { color: var(--ink); font-size: .88rem; line-height: 1.5; }
+.presentation-summary { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding: clamp(2rem, 5vw, 5rem) 8vw; border-bottom: 1px solid var(--ink); background: var(--surface); }
+.presentation-summary .step-label { margin-bottom: 1rem; }
+.presentation-summary h2 { margin: 0; font-size: clamp(3rem, 7vw, 7rem); font-weight: 710; letter-spacing: -.055em; line-height: .82; }
+.presentation-summary p { margin: 1rem 0 0; color: var(--muted); font-size: .82rem; }
+.presentation-links { display: flex; flex-wrap: wrap; gap: .8rem; }
+.presentation-links a { color: var(--ink); font-size: .72rem; font-weight: 750; text-underline-offset: .25em; }
+.presentation-activity { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--rule); padding: 1rem 0; }
+.presentation-activity a, .presentation-activity strong { color: var(--ink); font-size: .88rem; line-height: 1.5; }
+.talking-point-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .75rem; margin-bottom: 1.5rem; }
+.presentation-pins { display: grid; gap: .7rem; }
+.presentation-pins article { border-left: 3px solid var(--ember); padding: .8rem 1rem; background: var(--paper-deep); font-size: .85rem; line-height: 1.5; }
 .whiteboard-shell { display: flex; min-height: 100dvh; flex-direction: column; background: #f8f8f6; }
 .whiteboard-header { flex: 0 0 auto; min-height: 92px; }
 .whiteboard-canvas { position: relative; min-height: calc(100dvh - 92px); flex: 1; }
@@ -265,6 +291,11 @@ input[type="range"] { accent-color: var(--moss); }
   .plan-toolbar { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--rule); }
   .plan-toolbar .button { width: auto; white-space: nowrap; }
   .plan-editor { min-height: calc(100dvh - 210px); }
+  .activity-connect { grid-template-columns: 1fr auto; }
+  .activity-connect .button:last-child { grid-column: 1 / -1; }
+  .activity-workspace, .presentation-grid { grid-template-columns: 1fr; }
+  .repository-panel, .presentation-panel:first-child { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .activity-feed { padding-left: clamp(1.5rem, 4vw, 4rem); }
 }
 @media (max-width: 560px) {
   .landing-shell, .form-page { width: min(100% - 24px, 520px); }
@@ -290,6 +321,11 @@ input[type="range"] { accent-color: var(--moss); }
   .composer-foot .button { width: 100%; }
   .block-grid { grid-template-columns: repeat(5, minmax(82vw, 1fr)); scroll-snap-type: x mandatory; }
   .block-column { scroll-snap-align: start; }
+  .activity-connect, .talking-point-composer { grid-template-columns: 1fr; padding: 1rem; }
+  .activity-connect .button:last-child { grid-column: auto; }
+  .presentation-summary { align-items: flex-start; flex-direction: column; padding: 3rem 1rem; }
+  .presentation-panel, .repository-panel, .activity-feed { padding: 2rem 1rem; }
+  .activity-item { grid-template-columns: 1fr; gap: .35rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }

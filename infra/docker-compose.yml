@@ -23,6 +23,11 @@ services:
       DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
       SERVICE_TOKEN: ${SERVICE_TOKEN:-internal-dev-token}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      ALLOW_DEV_AUTH: ${ALLOW_DEV_AUTH:-false}
       RABBITMQ_URL: amqp://rabbitmq:5672
       PORT: "4000"
     ports:
@@ -54,6 +59,7 @@ services:
     environment:
       DATABASE_URL: postgres://war_room:war_room@postgres:5432/incident_service
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       PORT: "4004"
     ports:
       - "4004:4004"

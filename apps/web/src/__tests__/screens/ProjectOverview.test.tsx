@@ -49,5 +49,13 @@ describe("ProjectOverview", () => {
       "href",
       `/projects/${project.id}/whiteboard`
     );
+    expect(screen.getByRole("link", { name: /github activity/i })).toHaveAttribute(
+      "href",
+      `/projects/${project.id}/activity`
+    );
+    expect(screen.getByRole("link", { name: /presentation board/i })).toHaveAttribute(
+      "href",
+      `/projects/${project.id}/presentation`
+    );
   });
 });
